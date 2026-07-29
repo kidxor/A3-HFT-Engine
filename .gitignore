@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# Pytest / Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local databases & logs
+data/*.db
+*.log
+/tmp/test_8h.log
+/tmp/test_results_8h.txt
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+*.code-workspace

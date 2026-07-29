@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: a3-hft-engine
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python3 server.py
+    autoDeploy: true

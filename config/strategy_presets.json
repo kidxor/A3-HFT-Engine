@@ -1,0 +1,41 @@
+{
+  "presets": {
+    "alpha_edge_1000": {
+      "name": "AlphaEdge ($1,000 Capital)",
+      "description": "Trend-Pullback con confirmación múltiple | R:R 1:1.67 | ADX > 20 | Cooldown 3 velas",
+      "symbols": ["SOL-USDT"],
+      "strategy_class": "AlphaEdgeStrategy",
+      "initial_capital": 1000.0,
+      "risk_per_trade_pct": 0.01,
+      "atr_sl_mult": 1.5,
+      "atr_tp_mult": 2.5,
+      "max_daily_drawdown_pct": 0.05,
+      "badge": "ALPHAEDGE"
+    },
+    "alpha_edge_2500": {
+      "name": "AlphaEdge ($2,500 Capital)",
+      "description": "Trend-Pullback con confirmación múltiple | R:R 1:1.67 | ADX > 20 | Cooldown 3 velas",
+      "symbols": ["SOL-USDT"],
+      "strategy_class": "AlphaEdgeStrategy",
+      "initial_capital": 2500.0,
+      "risk_per_trade_pct": 0.01,
+      "atr_sl_mult": 1.5,
+      "atr_tp_mult": 2.5,
+      "max_daily_drawdown_pct": 0.05,
+      "badge": "ALPHAEDGE"
+    },
+    "alpha_edge_multi": {
+      "name": "AlphaEdge Multi-Asset",
+      "description": "AlphaEdge en SOL + BTC + ETH simultáneamente",
+      "symbols": ["SOL-USDT", "BTC-USDT", "ETH-USDT"],
+      "strategy_class": "AlphaEdgeStrategy",
+      "initial_capital": 3000.0,
+      "risk_per_trade_pct": 0.01,
+      "atr_sl_mult": 1.5,
+      "atr_tp_mult": 2.5,
+      "max_daily_drawdown_pct": 0.05,
+      "badge": "ALPHAEDGE MULTI"
+    }
+  },
+  "default_preset": "alpha_edge_1000"
+}
