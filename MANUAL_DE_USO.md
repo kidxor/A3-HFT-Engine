@@ -136,6 +136,8 @@ El módulo `RiskGuard` vigila cada trade en tiempo real antes y después de su e
 
 ---
 
+---
+
 ## 8. Ejecución de Pruebas Automatizadas (Tests)
 
 Para verificar que todos los módulos y la gestión de riesgo funcionan correctamente:
@@ -149,6 +151,28 @@ Para correr una prueba de simulación de 8 horas continuo con reporte automátic
 ```bash
 python3 run_8h_test.py
 ```
+
+---
+
+## 9. Despliegue 24/7 en la Nube (Render.com + UptimeRobot)
+
+El motor está completamente configurado para ejecutarse en producción 24/7/365 en la nube:
+
+### Repositorio Oficial en GitHub
+- **URL**: `https://github.com/kidxor/A3-HFT-Engine.git`
+- **Rama principal**: `main`
+
+### Configuración en Render.com
+- **Servicio**: Web Service
+- **Entorno**: Python 3
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `python3 server.py`
+- **Archivos de despliegue**: `render.yaml`, `Procfile`, `requirements.txt`.
+- **Puerto**: Enlace dinámico mediante `PORT = int(os.environ.get("PORT", 8005))`.
+
+### Operación Continua 24/7 (Keep-Alive con UptimeRobot)
+- Para evitar que la capa gratuita de Render entre en modo reposo (*sleep*) tras 15 minutos de inactividad de tráfico web, se encuentra configurado un monitor HTTP en **UptimeRobot.com**.
+- El monitor envía una petición HTTP cada 5 minutos a la URL del servicio en Render, garantizando que el motor permanezca activo ejecutando el stream de orderbook y evaluando estrategias ininterrumpidamente.
 
 ---
 
