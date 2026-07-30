@@ -2,7 +2,9 @@ import asyncio
 import json
 import logging
 import os
+import time
 from typing import Dict, Any, List, Optional
+import numpy as np
 
 from engine.tick_simulator import SubSecondTickSimulator
 from core.risk_guard import RiskGuard
@@ -40,6 +42,12 @@ class MultiAssetPortfolioRunner:
             max_exposure_pct=0.25,
         )
         self.db_manager = DatabaseManager()
+        # DB query cache — avoid hitting SQLite on every SSE tick (5/sec)
+        self._db_cache_ttl: float = 30.0   # seconds between DB reads
+        self._db_cache_ts: float = 0.0
+        self._db_cache: Dict[str, Any] = {"total_trades":0,"win_trades":0,"win_rate_pct":0.0,"total_pnl":0.0,"avg_pnl":0.0}
+        self._recent_trades_cache: list = []
+        self._recent_trades_ts: float = 0.0
 
         self.simulators: Dict[str, SubSecondTickSimulator] = {}
         alloc_per_symbol = initial_capital / len(symbols)
@@ -193,60 +201,73 @@ class MultiAssetPortfolioRunner:
         self.risk_guard.reset_circuit_breaker(self.initial_capital)
 
     def get_portfolio_summary(self) -> Dict[str, Any]:
-        total_capital = sum(sim.execution_engine.capital for sim in self.simulators.values())
-        total_pnl = sum(sim.execution_engine.cum_pnl for sim in self.simulators.values())
-        total_trades = sum(sim.execution_engine.total_trades for sim in self.simulators.values())
-        total_wins = sum(sim.execution_engine.wins for sim in self.simulators.values())
+        sims = list(self.simulators.values())
+        total_capital = sum(s.execution_engine.capital for s in sims)
+        total_pnl     = sum(s.execution_engine.cum_pnl for s in sims)
+        total_trades  = sum(s.execution_engine.total_trades for s in sims)
+        total_wins    = sum(s.execution_engine.wins for s in sims)
         win_rate = (total_wins / total_trades * 100) if total_trades > 0 else 0.0
 
-        # Aggregate profit factor across all simulators
-        all_closed_pnls = []
-        for sim in self.simulators.values():
-            all_closed_pnls.extend(p.pnl for p in sim.execution_engine.closed_positions)
-        gross_wins = sum(p for p in all_closed_pnls if p > 0)
-        gross_losses = abs(sum(p for p in all_closed_pnls if p < 0))
-        profit_factor = round(gross_wins / gross_losses, 2) if gross_losses > 0 else (gross_wins if gross_wins > 0 else 0.0)
+        # Aggregate closed PnLs using numpy for fast vectorized stats
+        closed_pnls = np.concatenate([
+            np.fromiter((p.pnl for p in s.execution_engine.closed_positions), dtype=np.float64)
+            for s in sims
+        ]) if sims else np.array([], dtype=np.float64)
 
-        # Aggregate Sharpe Ratio
+        if closed_pnls.size > 0:
+            wins_arr   = closed_pnls[closed_pnls > 0]
+            losses_arr = closed_pnls[closed_pnls < 0]
+            gross_wins   = wins_arr.sum()
+            gross_losses = abs(losses_arr.sum())
+            profit_factor = round(gross_wins / gross_losses, 2) if gross_losses > 0 else (float(gross_wins) if gross_wins > 0 else 0.0)
+        else:
+            profit_factor = 0.0
+
         sharpe_ratio = 0.0
-        if len(all_closed_pnls) >= 5:
-            import numpy as np
-            returns = np.diff(all_closed_pnls) / (np.abs(all_closed_pnls[:-1]) + 1e-9)
-            if returns.std() > 0:
-                sharpe_ratio = round((returns.mean() / returns.std()) * np.sqrt(252), 2)
+        if closed_pnls.size >= 5:
+            prev = closed_pnls[:-1]
+            returns = np.diff(closed_pnls) / (np.abs(prev) + 1e-9)
+            std = returns.std()
+            if std > 0:
+                sharpe_ratio = round((returns.mean() / std) * np.sqrt(252), 2)
 
         per_symbol_metrics = {}
         for sym, sim in self.simulators.items():
-            metrics = sim.latest_metrics or {}
+            metrics  = sim.latest_metrics or {}
             sim_stats = sim.execution_engine.get_stats()
             per_symbol_metrics[sym] = {
-                "mid_price": metrics.get("mid_price", 0.0),
-                "capital": round(sim.execution_engine.capital, 2),
-                "pnl": round(sim.execution_engine.cum_pnl, 4),
-                "trades": sim.execution_engine.total_trades,
+                "mid_price":     metrics.get("mid_price", 0.0),
+                "capital":       round(sim.execution_engine.capital, 2),
+                "pnl":           round(sim.execution_engine.cum_pnl, 4),
+                "trades":        sim.execution_engine.total_trades,
                 "profit_factor": sim_stats.get("profit_factor", 0.0),
-                "sharpe_ratio": sim_stats.get("sharpe_ratio", 0.0),
+                "sharpe_ratio":  sim_stats.get("sharpe_ratio", 0.0),
                 "latest_signal": sim.latest_signal,
             }
 
-        db_summary = self.db_manager.get_total_summary()
+        # TTL-cached DB queries — avoid 5 SQLite reads/sec during streaming
+        now = time.time()
+        if now - self._db_cache_ts >= self._db_cache_ttl:
+            self._db_cache         = self.db_manager.get_total_summary()
+            self._recent_trades_cache = self.db_manager.get_recent_trades(limit=10)
+            self._db_cache_ts      = now
 
         return {
-            "profile_id": self.profile_id,
-            "preset_key": self.preset_key,
-            "preset_info": self.preset_info,
-            "symbols": self.symbols,
-            "total_capital": round(total_capital, 2),
-            "total_pnl": round(total_pnl, 4),
-            "total_trades": total_trades,
+            "profile_id":       self.profile_id,
+            "preset_key":       self.preset_key,
+            "preset_info":      self.preset_info,
+            "symbols":          self.symbols,
+            "total_capital":    round(total_capital, 2),
+            "total_pnl":        round(total_pnl, 4),
+            "total_trades":     total_trades,
             "win_rate_percent": round(win_rate, 1),
-            "profit_factor": profit_factor,
-            "sharpe_ratio": sharpe_ratio,
-            "active_strategy": self.strategy_name,
-            "risk_guard": self.risk_guard.get_status(),
-            "per_symbol": per_symbol_metrics,
-            "all_time_db": db_summary,
-            "recent_db_trades": self.db_manager.get_recent_trades(limit=10),
+            "profit_factor":    profit_factor,
+            "sharpe_ratio":     sharpe_ratio,
+            "active_strategy":  self.strategy_name,
+            "risk_guard":       self.risk_guard.get_status(),
+            "per_symbol":       per_symbol_metrics,
+            "all_time_db":      self._db_cache,
+            "recent_db_trades": self._recent_trades_cache,
         }
 
 

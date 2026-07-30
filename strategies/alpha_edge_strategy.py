@@ -57,15 +57,19 @@ class AlphaEdgeStrategy:
         self._last_trade_idx = -999
 
     def compute_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
+        from strategies.indicators import _compute_true_range
         data = df.copy()
-        data['ema_fast'] = compute_ema(data['close'], self.ema_fast)
-        data['ema_slow'] = compute_ema(data['close'], self.ema_slow)
-        data['ema_trend'] = compute_ema(data['close'], self.ema_trend)
-        data['adx'] = compute_adx(data, self.adx_period, use_ewm=True)
-        data['rsi'] = compute_rsi(data['close'], self.rsi_period)
-        data['atr'] = compute_atr(data, self.atr_period)
+        close = data['close']
+        # Pre-compute True Range once — reused by both ATR and ADX
+        tr = _compute_true_range(data)
+        data['ema_fast'] = compute_ema(close, self.ema_fast)
+        data['ema_slow'] = compute_ema(close, self.ema_slow)
+        data['ema_trend'] = compute_ema(close, self.ema_trend)
+        data['atr'] = tr.ewm(alpha=1.0/self.atr_period, min_periods=self.atr_period, adjust=False).mean()
+        data['adx'] = compute_adx(data, self.adx_period, use_ewm=True, _tr=tr)
+        data['rsi'] = compute_rsi(close, self.rsi_period)
         data['bb_upper'], data['bb_middle'], data['bb_lower'], data['pct_b'] = compute_bollinger_bands(
-            data['close'], self.bb_period, self.bb_std
+            close, self.bb_period, self.bb_std
         )
         return data
 
