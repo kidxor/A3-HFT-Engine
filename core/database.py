@@ -31,46 +31,50 @@ class DatabaseManager:
 
     def _init_tables(self):
         """Creates trades and daily_metrics tables if they do not exist."""
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS trades (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    symbol TEXT NOT NULL,
-                    strategy TEXT NOT NULL,
-                    side TEXT NOT NULL,
-                    entry_price REAL NOT NULL,
-                    exit_price REAL NOT NULL,
-                    quantity REAL NOT NULL,
-                    pnl REAL NOT NULL,
-                    return_pct REAL NOT NULL,
-                    exit_reason TEXT,
-                    timestamp_ms INTEGER NOT NULL,
-                    profile_id TEXT DEFAULT 'default',
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            
-            # Check if profile_id column exists (for table migration)
-            cursor.execute("PRAGMA table_info(trades)")
-            columns = [col[1] for col in cursor.fetchall()]
-            if "profile_id" not in columns:
-                cursor.execute("ALTER TABLE trades ADD COLUMN profile_id TEXT DEFAULT 'default'")
-            if "fee" not in columns:
-                cursor.execute("ALTER TABLE trades ADD COLUMN fee REAL DEFAULT 0.0")
-            
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS daily_summary (
-                    date TEXT PRIMARY KEY,
-                    start_capital REAL NOT NULL,
-                    end_capital REAL NOT NULL,
-                    total_trades INTEGER NOT NULL,
-                    win_rate_pct REAL NOT NULL,
-                    total_pnl REAL NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            conn.commit()
+        conn = self._get_connection()
+        try:
+            with conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS trades (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        symbol TEXT NOT NULL,
+                        strategy TEXT NOT NULL,
+                        side TEXT NOT NULL,
+                        entry_price REAL NOT NULL,
+                        exit_price REAL NOT NULL,
+                        quantity REAL NOT NULL,
+                        pnl REAL NOT NULL,
+                        return_pct REAL NOT NULL,
+                        exit_reason TEXT,
+                        timestamp_ms INTEGER NOT NULL,
+                        profile_id TEXT DEFAULT 'default',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                
+                # Check if profile_id column exists (for table migration)
+                cursor.execute("PRAGMA table_info(trades)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if "profile_id" not in columns:
+                    cursor.execute("ALTER TABLE trades ADD COLUMN profile_id TEXT DEFAULT 'default'")
+                if "fee" not in columns:
+                    cursor.execute("ALTER TABLE trades ADD COLUMN fee REAL DEFAULT 0.0")
+                
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS daily_summary (
+                        date TEXT PRIMARY KEY,
+                        start_capital REAL NOT NULL,
+                        end_capital REAL NOT NULL,
+                        total_trades INTEGER NOT NULL,
+                        win_rate_pct REAL NOT NULL,
+                        total_pnl REAL NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+                conn.commit()
+        finally:
+            conn.close()
         logger.info(f"💾 SQLite Trade Database initialized at: {self.db_path}")
 
     def save_trade(
@@ -94,21 +98,26 @@ class DatabaseManager:
         return_pct = (exit_price - entry_price) / entry_price if side == "BUY" else (entry_price - exit_price) / entry_price
         
         with self._lock:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO trades (symbol, strategy, side, entry_price, exit_price, quantity, pnl, return_pct, exit_reason, timestamp_ms, profile_id, fee)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (symbol, strategy, side, entry_price, exit_price, quantity, pnl, return_pct, exit_reason, timestamp_ms, profile_id, fee))
-                conn.commit()
-                trade_id = cursor.lastrowid
-                logger.info(f"💾 Saved Trade #{trade_id} [{symbol} {side}] PnL: ${pnl:+.4f} Fee: ${fee:.4f} ({exit_reason}) Profile: {profile_id}")
-                return trade_id
+            conn = self._get_connection()
+            try:
+                with conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT INTO trades (symbol, strategy, side, entry_price, exit_price, quantity, pnl, return_pct, exit_reason, timestamp_ms, profile_id, fee)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (symbol, strategy, side, entry_price, exit_price, quantity, pnl, return_pct, exit_reason, timestamp_ms, profile_id, fee))
+                    conn.commit()
+                    trade_id = cursor.lastrowid
+                    logger.info(f"💾 Saved Trade #{trade_id} [{symbol} {side}] PnL: ${pnl:+.4f} Fee: ${fee:.4f} ({exit_reason}) Profile: {profile_id}")
+                    return trade_id
+            finally:
+                conn.close()
 
     def get_recent_trades(self, limit: int = 50, symbol: Optional[str] = None) -> List[Dict[str, Any]]:
         """Retrieves recent trades from the database."""
         with self._lock:
-            with self._get_connection() as conn:
+            conn = self._get_connection()
+            try:
                 cursor = conn.cursor()
                 if symbol:
                     cursor.execute("""
@@ -120,11 +129,14 @@ class DatabaseManager:
                     """, (limit,))
                 rows = cursor.fetchall()
                 return [dict(row) for row in rows]
+            finally:
+                conn.close()
 
     def get_total_summary(self) -> Dict[str, Any]:
         """Calculates total all-time metrics from stored trades."""
         with self._lock:
-            with self._get_connection() as conn:
+            conn = self._get_connection()
+            try:
                 cursor = conn.cursor()
                 cursor.execute("""
                     SELECT 
@@ -147,17 +159,23 @@ class DatabaseManager:
                     "total_pnl": round(total_pnl, 4),
                     "avg_pnl": round(row["avg_pnl"] or 0.0, 4)
                 }
+            finally:
+                conn.close()
 
     def clear_all_trades(self):
         """Clears all trades and resets SQLite autoincrement ID."""
         with self._lock:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM trades")
-                try:
-                    cursor.execute("DELETE FROM sqlite_sequence WHERE name='trades'")
-                except sqlite3.OperationalError:
-                    pass
-                cursor.execute("DELETE FROM daily_summary")
-                conn.commit()
+            conn = self._get_connection()
+            try:
+                with conn:
+                    cursor = conn.cursor()
+                    cursor.execute("DELETE FROM trades")
+                    try:
+                        cursor.execute("DELETE FROM sqlite_sequence WHERE name='trades'")
+                    except sqlite3.OperationalError:
+                        pass
+                    cursor.execute("DELETE FROM daily_summary")
+                    conn.commit()
+            finally:
+                conn.close()
         logger.info(f"🧹 Cleared all historical trade data from {self.db_path}")

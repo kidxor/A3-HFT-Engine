@@ -14,6 +14,8 @@ htmlcov/
 
 # Local databases & logs
 data/*.db
+data/*.db-shm
+data/*.db-wal
 *.log
 /tmp/test_8h.log
 /tmp/test_results_8h.txt

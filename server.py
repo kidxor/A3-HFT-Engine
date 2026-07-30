@@ -25,9 +25,9 @@ logger = logging.getLogger("HFT_Server")
 
 PORT = int(os.environ.get("PORT", 8005))
 ENGINE_MANAGER = None
-ENGINE_RUNNING = False
+ENGINE_RUNNING = True
 PRICE_HISTORIES = {}
-ENGINE_START_TIME = None
+ENGINE_START_TIME = time.time()
 ACCUMULATED_UPTIME = 0.0
 _PRICE_LOCK = threading.Lock()
 
@@ -184,7 +184,7 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
                         self.wfile.write(msg.encode("utf-8"))
                         self.wfile.flush()
                     time.sleep(0.2)
-            except (ConnectionResetError, BrokenPipeError):
+            except Exception:
                 pass
 
         elif path_clean == "/api/start":
@@ -325,12 +325,17 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
 
 
 def run_async_portfolio():
-    global ENGINE_MANAGER, ENGINE_RUNNING
+    global ENGINE_MANAGER, ENGINE_RUNNING, ENGINE_START_TIME
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     ENGINE_MANAGER = MultiProfileEngineManager()
     ENGINE_MANAGER.set_mode(use_live=False)
-    ENGINE_MANAGER.set_engine_state(False)
+    
+    auto_start = os.environ.get("AUTO_START_ENGINE", "true").lower() in ("true", "1", "yes")
+    ENGINE_RUNNING = auto_start
+    if auto_start:
+        ENGINE_START_TIME = time.time()
+    ENGINE_MANAGER.set_engine_state(auto_start)
 
     tasks = []
     for sim in ENGINE_MANAGER.single_runner.simulators.values():

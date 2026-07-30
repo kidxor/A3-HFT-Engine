@@ -1516,10 +1516,11 @@
 
         // KPIs — prefer cumulative DB data over session-only data
         const db = portfolio.all_time_db || {};
-        const pnl = db.total_pnl || portfolio.total_pnl || 0;
+        const hasDbTrades = (db.total_trades && db.total_trades > 0);
+        const pnl = hasDbTrades ? db.total_pnl : (portfolio.total_pnl || 0);
         const cap = portfolio.total_capital || 1000;
-        const wr  = db.win_rate_pct || portfolio.win_rate_percent || 0;
-        const trades = db.total_trades || portfolio.total_trades || 0;
+        const wr  = hasDbTrades ? db.win_rate_pct : (portfolio.win_rate_percent || 0);
+        const trades = hasDbTrades ? db.total_trades : (portfolio.total_trades || 0);
 
         const kpiPnl = document.getElementById('kpi-pnl');
         kpiPnl.textContent = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
