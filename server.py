@@ -18,6 +18,7 @@ import time
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from core.portfolio_runner import MultiProfileEngineManager
 from core.event_logger import event_logger
+from core.market_data_proxy import init_proxy, get_proxy
 from strategies import STRATEGY_REGISTRY
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -145,6 +146,12 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
 
+            # Set socket timeout so dead clients are detected quickly
+            try:
+                self.connection.settimeout(15.0)
+            except Exception:
+                pass
+
             try:
                 while True:
                     if ENGINE_MANAGER:
@@ -168,6 +175,9 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
                         sample_sim = list(ENGINE_MANAGER.single_runner.simulators.values())[0] if ENGINE_MANAGER.single_runner.simulators else None
                         latest_sig = sample_sim.latest_signal if sample_sim else {"signal": "NEUTRAL", "reason": "Analizando"}
 
+                        proxy = get_proxy()
+                        all_tickers = proxy.get_all_tickers() if proxy else {}
+
                         uptime_sec = get_current_uptime_seconds()
                         payload = {
                             "engine_running": ENGINE_RUNNING,
@@ -176,6 +186,7 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
                             "price_histories": price_hist_snapshot,
                             "price_history": price_hist_first,
                             "portfolio": summary,
+                            "all_tickers": all_tickers,
                             "signal": latest_sig if ENGINE_RUNNING else {"signal": "DETENIDO", "reason": "Bot pausado"},
                             "risk_guard": summary["risk_guard"],
                             "logs": event_logger.get_logs(limit=100),
@@ -258,6 +269,9 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
                             custom_symbols = [sym_val]
             if ENGINE_MANAGER:
                 ENGINE_MANAGER.select_preset_or_mode(preset_key, custom_capital=custom_capital, custom_symbols=custom_symbols)
+                proxy = get_proxy()
+                if proxy:
+                    proxy.update_symbols(ENGINE_MANAGER.single_runner.symbols)
             ACCUMULATED_UPTIME = 0.0
             ENGINE_START_TIME = time.time()
             event_logger.log("SYSTEM", f"📊 Preset -> '{preset_key}'", level="INFO")
@@ -280,6 +294,62 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
 
         elif path_clean == "/api/config":
             self._send_json(_get_engine_config())
+
+        elif path_clean == "/proxy/status":
+            proxy = get_proxy()
+            if proxy:
+                self._send_json(proxy.get_status())
+            else:
+                self._send_json({"running": False, "message": "MarketDataProxy not initialized"})
+
+        elif path_clean == "/proxy/orderbook":
+            params = self.path.split("?")
+            symbol = "SOL-USDT"
+            if len(params) > 1:
+                for q in params[1].split("&"):
+                    if q.startswith("symbol="):
+                        symbol = q.split("=")[1]
+            proxy = get_proxy()
+            if proxy:
+                ob = proxy.get_orderbook(symbol)
+                if ob:
+                    self._send_json(ob)
+                else:
+                    self.send_response(503)
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "Orderbook not ready for symbol"}')
+            else:
+                self.send_response(503)
+                self.end_headers()
+                self.wfile.write(b'{"error": "MarketDataProxy not initialized"}')
+
+        elif path_clean == "/proxy/ticker":
+            params = self.path.split("?")
+            symbol = "SOL-USDT"
+            if len(params) > 1:
+                for q in params[1].split("&"):
+                    if q.startswith("symbol="):
+                        symbol = q.split("=")[1]
+            proxy = get_proxy()
+            if proxy:
+                ticker = proxy.get_ticker(symbol)
+                if ticker:
+                    self._send_json(ticker)
+                else:
+                    self.send_response(503)
+                    self.end_headers()
+                    self.wfile.write(b'{"error": "Ticker not ready for symbol"}')
+            else:
+                self.send_response(503)
+                self.end_headers()
+                self.wfile.write(b'{"error": "MarketDataProxy not initialized"}')
+
+        elif path_clean == "/proxy/all_tickers":
+            proxy = get_proxy()
+            if proxy:
+                self._send_json(proxy.get_all_tickers())
+            else:
+                self._send_json({})
 
         else:
             self.send_response(404)
@@ -306,6 +376,9 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
                 bots = payload.get("bots", [])
                 if ENGINE_MANAGER and bots:
                     ENGINE_MANAGER.configure_custom_bots(bots)
+                    proxy = get_proxy()
+                    if proxy:
+                        proxy.update_symbols(ENGINE_MANAGER.single_runner.symbols)
                     ENGINE_MANAGER.set_engine_state(True)
                     ENGINE_MANAGER.set_mode(use_live=ENGINE_MANAGER.use_live_market_data)
                     event_logger.log("SYSTEM", f"🔧 {len(bots)} bot(s) configurados vía Wizard", level="SUCCESS")
@@ -329,7 +402,12 @@ def run_async_portfolio():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     ENGINE_MANAGER = MultiProfileEngineManager()
-    ENGINE_MANAGER.set_mode(use_live=False)
+    
+    # Initialize Market Data Proxy with portfolio symbols
+    init_proxy(symbols=ENGINE_MANAGER.single_runner.symbols, interval_ms=300)
+
+    use_live_default = os.environ.get("LIVE_MODE", "true").lower() in ("true", "1", "yes")
+    ENGINE_MANAGER.set_mode(use_live=use_live_default)
     
     auto_start = os.environ.get("AUTO_START_ENGINE", "true").lower() in ("true", "1", "yes")
     ENGINE_RUNNING = auto_start

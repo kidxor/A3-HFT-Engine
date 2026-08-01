@@ -404,6 +404,7 @@
         .kpi-meta { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
         .kpi-positive { color: var(--green); }
         .kpi-negative { color: var(--red); }
+        .kpi-amber    { color: var(--amber); }
 
         /* ─── SECTION HEADER ─────────────────────── */
         .section-header {
@@ -590,18 +591,31 @@
 
         .log-row {
             display: flex;
-            gap: 8px;
-            padding: 3px 6px;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 2px;
+            padding: 5px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
             border-radius: 4px;
             transition: background 0.15s;
-            animation: fadeIn 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
         }
-        .log-row:hover { background: rgba(255,255,255,0.02); }
-        .log-time { color: var(--text-dim); flex-shrink: 0; font-size: 10.5px; }
-        .log-cat  { font-weight: 600; flex-shrink: 0; min-width: 56px; font-size: 10.5px; }
-        .log-sym  { color: var(--text-dim); flex-shrink: 0; font-size: 10.5px; min-width: 60px; }
-        .log-msg  { flex: 1; word-break: break-word; }
+        .log-row:hover { background: rgba(255,255,255,0.04); }
+        .log-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+        .log-time { color: var(--text-dim); font-size: 10px; font-weight: 500; }
+        .log-cat  { font-weight: 700; font-size: 10px; letter-spacing: 0.3px; }
+        .log-sym  { color: #60a5fa; font-size: 10px; font-weight: 600; }
+        .log-msg  {
+            font-size: 11px;
+            line-height: 1.45;
+            word-break: break-word;
+            padding-left: 2px;
+        }
 
         .cat-ORDER  { color: var(--green); }
         .cat-SIGNAL { color: var(--purple); }
@@ -612,7 +626,7 @@
         .lvl-SUCCESS { color: var(--green); }
         .lvl-WARNING { color: var(--amber); }
         .lvl-ERROR   { color: var(--red); }
-        .lvl-INFO    { color: #b0bdd0; }
+        .lvl-INFO    { color: #cbd5e1; }
 
         /* filter tabs */
         .log-filters { display: flex; align-items: center; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
@@ -1502,55 +1516,113 @@
             modeText.textContent = 'TRAINING';
         }
 
-        // Ticker
-        for (const s in perSym) {
-            const p = perSym[s].mid_price;
-            if (p > 0) {
-                const map = {'SOL-USDT':'ticker-sol','BTC-USDT':'ticker-btc','ETH-USDT':'ticker-eth'};
-                if (map[s]) {
-                    const el = document.getElementById(map[s]);
-                    if (el) el.textContent = p > 10 ? `$${p.toFixed(2)}` : `$${p.toFixed(4)}`;
+        // Ticker — render/update live prices for all coins from MarketDataProxy or perSym
+        const allTickers = data.all_tickers || {};
+        const tickerStrip = document.getElementById('ticker-strip');
+        if (tickerStrip) {
+            const symbolKeys = Object.keys(allTickers).length > 0
+                ? Object.keys(allTickers)
+                : Object.keys(perSym);
+
+            let html = '';
+            symbolKeys.forEach(sym => {
+                const shortName = sym.split('-')[0];
+                let priceVal = 0;
+                if (allTickers[sym] && allTickers[sym].mid_price) {
+                    priceVal = allTickers[sym].mid_price;
+                } else if (perSym[sym] && perSym[sym].mid_price) {
+                    priceVal = perSym[sym].mid_price;
                 }
+                const priceFmt = priceVal > 10 ? `$${priceVal.toFixed(2)}` : (priceVal > 0 ? `$${priceVal.toFixed(4)}` : '—');
+                html += `
+                    <div class="ticker-item">
+                        <span class="ticker-label">${escapeHtml(shortName)}</span>
+                        <span class="ticker-price" id="ticker-price-${escapeHtml(sym)}">${priceFmt}</span>
+                    </div>`;
+            });
+            if (html && tickerStrip.getAttribute('data-keys') !== symbolKeys.join(',')) {
+                tickerStrip.setAttribute('data-keys', symbolKeys.join(','));
+                tickerStrip.innerHTML = html;
+            } else {
+                symbolKeys.forEach(sym => {
+                    const el = document.getElementById(`ticker-price-${sym}`);
+                    let priceVal = 0;
+                    if (allTickers[sym] && allTickers[sym].mid_price) priceVal = allTickers[sym].mid_price;
+                    else if (perSym[sym] && perSym[sym].mid_price) priceVal = perSym[sym].mid_price;
+                    if (el && priceVal > 0) {
+                        el.textContent = priceVal > 10 ? `$${priceVal.toFixed(2)}` : `$${priceVal.toFixed(4)}`;
+                    }
+                });
             }
         }
 
-        // KPIs — prefer cumulative DB data over session-only data
+        // KPIs — Live calculations combining session state and DB history
         const db = portfolio.all_time_db || {};
-        const hasDbTrades = (db.total_trades && db.total_trades > 0);
-        const pnl = hasDbTrades ? db.total_pnl : (portfolio.total_pnl || 0);
-        const cap = portfolio.total_capital || 1000;
-        const wr  = hasDbTrades ? db.win_rate_pct : (portfolio.win_rate_percent || 0);
-        const trades = hasDbTrades ? db.total_trades : (portfolio.total_trades || 0);
+        const sessionPnl = portfolio.total_pnl || 0;
+        const dbPnl = db.total_pnl || 0;
+
+        // Cumulative net PnL (DB history + live session)
+        const totalPnl = (db.total_trades && db.total_trades > 0) ? (dbPnl + sessionPnl) : sessionPnl;
+
+        // Live net capital (Initial Capital + Total Net PnL)
+        const initCap = (portfolio.preset_info && portfolio.preset_info.initial_capital)
+            ? portfolio.preset_info.initial_capital
+            : (portfolio.total_capital || 1000);
+        const liveCapital = initCap + totalPnl;
+
+        // Win rate and trades count
+        const totalTradesCount = (db.total_trades && db.total_trades > 0)
+            ? db.total_trades
+            : (portfolio.total_trades || 0);
+        const winRateVal = (db.total_trades && db.total_trades > 0)
+            ? (db.win_rate_pct || 0)
+            : (portfolio.win_rate_percent || 0);
 
         const kpiPnl = document.getElementById('kpi-pnl');
-        kpiPnl.textContent = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
-        kpiPnl.className   = `kpi-value mono ${pnl >= 0 ? 'kpi-positive' : 'kpi-negative'}`;
-        document.getElementById('kpi-capital').textContent = `$${cap.toFixed(2)}`;
-        document.getElementById('kpi-winrate').textContent = `${wr.toFixed(1)}%`;
-        document.getElementById('kpi-winrate-sub').textContent = `${trades} trades cerrados`;
+        kpiPnl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(4)}`;
+        kpiPnl.className   = `kpi-value mono ${totalPnl >= 0 ? 'kpi-positive' : 'kpi-negative'}`;
 
-        // Drawdown KPI
-        const ddPct = pnl < 0 ? Math.min(100, (Math.abs(pnl) / cap) * 100) : 0;
+        document.getElementById('kpi-capital').textContent = `$${liveCapital.toFixed(2)}`;
+        document.getElementById('kpi-winrate').textContent = `${winRateVal.toFixed(1)}%`;
+        document.getElementById('kpi-winrate-sub').textContent = `${totalTradesCount} trades cerrados`;
+
+        // Drawdown KPI — backend-calculated risk_guard
+        const rg = data.risk_guard || {};
+        const ddPct = typeof rg.portfolio_drawdown_pct === 'number'
+            ? rg.portfolio_drawdown_pct
+            : (typeof rg.peak_drawdown_pct === 'number'
+                ? rg.peak_drawdown_pct
+                : (sessionPnl < 0 ? Math.min(100, (Math.abs(sessionPnl) / initCap) * 100) : 0));
         const ddKpi = document.getElementById('kpi-dd');
         ddKpi.textContent = `${ddPct.toFixed(2)}%`;
-        ddKpi.className   = `kpi-value mono ${ddPct > 10 ? 'kpi-negative' : ddPct > 5 ? '' : ''}`;
+        ddKpi.className   = `kpi-value mono ${ddPct > 10 ? 'kpi-negative' : ddPct > 5 ? 'kpi-amber' : 'kpi-positive'}`;
 
         // Profit Factor & Sharpe Ratio
-        const pf = portfolio.profit_factor || 0;
-        document.getElementById('kpi-pf').textContent = pf.toFixed(2);
-        document.getElementById('kpi-pf').className = `kpi-value mono ${pf >= 1.5 ? 'kpi-positive' : pf >= 1.0 ? '' : 'kpi-negative'}`;
-        document.getElementById('kpi-sharpe').textContent = (portfolio.sharpe_ratio || 0).toFixed(2);
+        let pfAgg = portfolio.profit_factor || 0;
+        let sharpeAgg = portfolio.sharpe_ratio || 0;
+        if (pfAgg === 0 && Object.keys(perSym).length > 0) {
+            const pfVals = Object.values(perSym).map(s => s.profit_factor || 0).filter(v => v > 0);
+            if (pfVals.length > 0) pfAgg = pfVals.reduce((a,b) => a+b, 0) / pfVals.length;
+            const srVals = Object.values(perSym).map(s => s.sharpe_ratio || 0).filter(v => v !== 0);
+            if (srVals.length > 0) sharpeAgg = srVals.reduce((a,b) => a+b, 0) / srVals.length;
+        }
+        document.getElementById('kpi-pf').textContent = pfAgg.toFixed(2);
+        document.getElementById('kpi-pf').className = `kpi-value mono ${pfAgg >= 1.5 ? 'kpi-positive' : pfAgg >= 1.0 ? '' : 'kpi-negative'}`;
+        document.getElementById('kpi-sharpe').textContent = sharpeAgg.toFixed(2);
 
         if (portfolio.preset_info) {
             const info = portfolio.preset_info;
+            const riskPct = typeof info.risk_per_trade_pct === 'number' ? info.risk_per_trade_pct : 0.01;
             document.getElementById('kpi-capital-sub').textContent =
-                `Riesgo ${(info.risk_per_trade_pct*100).toFixed(1)}% · $${(cap * info.risk_per_trade_pct).toFixed(0)}/trade`;
-            const ddLim = (info.max_daily_drawdown_pct || 0.15) * 100;
+                `Riesgo ${(riskPct * 100).toFixed(1)}% · $${(liveCapital * riskPct).toFixed(0)}/trade`;
+            const ddLim = typeof rg.max_daily_drawdown_pct === 'number'
+                ? rg.max_daily_drawdown_pct
+                : ((info.max_daily_drawdown_pct || 0.05) * 100);
             document.getElementById('kpi-dd-sub').textContent = `Límite: ${ddLim.toFixed(1)}%`;
             document.getElementById('risk-dd-lim').textContent = `${ddLim.toFixed(1)}%`;
             document.getElementById('sb-maxdd').textContent = `${ddLim.toFixed(1)}%`;
-            document.getElementById('sb-risk').textContent = `${(info.risk_per_trade_pct*100).toFixed(1)}%`;
-            document.getElementById('sb-capital').textContent = `$${(info.initial_capital||cap).toLocaleString()}`;
+            document.getElementById('sb-risk').textContent = `${(riskPct * 100).toFixed(1)}%`;
+            document.getElementById('sb-capital').textContent = `$${(info.initial_capital || initCap).toLocaleString()}`;
         }
 
         // Risk bar
@@ -1561,7 +1633,6 @@
         fill.style.background = gaugeW > 75 ? 'var(--red)' : gaugeW > 40 ? 'var(--amber)' : 'var(--green)';
         document.getElementById('risk-dd-val').textContent = `${ddPct.toFixed(2)}%`;
         document.getElementById('risk-consec').textContent = `${risk.consecutive_losses||0} / 5`;
-        document.getElementById('risk-guard-banner') && null; // handled below
         const riskBar = document.getElementById('risk-bar');
         const riskTxt = document.getElementById('risk-status-text');
         if (risk.circuit_breaker_triggered) {
@@ -1678,11 +1749,14 @@
         if (data.logs) { lastLogs = data.logs; renderLogs(data.logs); }
     }
 
-    // ── Logs ──────────────────────────────────────
+    // ── Logs (Flicker-Free & Aligned) ──────────────────────────
+    let lastRenderedLogSig = '';
+
     function setFilter(f, el) {
         currentFilter = f;
         document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
         if (el) el.classList.add('active');
+        lastRenderedLogSig = ''; // Force re-render on filter change
         renderLogs(lastLogs);
     }
 
@@ -1697,28 +1771,35 @@
         }
 
         // Audio alerts
-        if (filtered.length > 0) {
-            const latest = filtered[filtered.length - 1];
-            if (latest.id && latest.id > lastLogId) {
-                lastLogId = latest.id;
-                if (latest.category === 'ORDER') {
-                    if (latest.level === 'SUCCESS') playSound(true);
-                    else if (latest.level === 'ERROR') playSound(false);
-                }
+        const latest = filtered[filtered.length - 1];
+        if (latest && latest.id && latest.id > lastLogId) {
+            lastLogId = latest.id;
+            if (latest.category === 'ORDER') {
+                if (latest.level === 'SUCCESS') playSound(true);
+                else if (latest.level === 'ERROR') playSound(false);
             }
         }
 
-        const terminal = document.getElementById('terminal');
+        // Signature check: skip DOM rewrite if log content hasn't changed
+        const sig = `${currentFilter}_${filtered.length}_${latest ? latest.id : 0}`;
+        if (sig === lastRenderedLogSig) return;
+        lastRenderedLogSig = sig;
+
         terminal.innerHTML = filtered.map(l => {
             const msgColor = l.level === 'SUCCESS' ? 'lvl-SUCCESS' : l.level === 'WARNING' ? 'lvl-WARNING' : l.level === 'ERROR' ? 'lvl-ERROR' : 'lvl-INFO';
             return `<div class="log-row">
-                <span class="log-time">${escapeHtml(l.time)}</span>
-                <span class="log-cat cat-${escapeHtml(l.category)}">[${escapeHtml(l.category)}]</span>
-                <span class="log-sym">${escapeHtml((l.symbol||'').slice(0,9))}</span>
-                <span class="log-msg ${msgColor}">${escapeHtml(l.message)}</span>
+                <div class="log-meta">
+                    <span class="log-time">${escapeHtml(l.time)}</span>
+                    <span class="log-cat cat-${escapeHtml(l.category)}">[${escapeHtml(l.category)}]</span>
+                    <span class="log-sym">${escapeHtml(l.symbol || 'GLOBAL')}</span>
+                </div>
+                <div class="log-msg ${msgColor}">${escapeHtml(l.message)}</div>
             </div>`;
         }).join('');
-        if (autoScroll) terminal.scrollTop = terminal.scrollHeight;
+
+        if (autoScroll) {
+            terminal.scrollTop = terminal.scrollHeight;
+        }
     }
 
     function toggleScroll() {

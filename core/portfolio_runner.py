@@ -4,6 +4,7 @@ import logging
 import os
 import time
 from typing import Dict, Any, List, Optional
+
 import numpy as np
 
 from engine.tick_simulator import SubSecondTickSimulator
@@ -17,7 +18,16 @@ logger = logging.getLogger("PortfolioRunner")
 class MultiAssetPortfolioRunner:
     """
     Multi-Asset Portfolio Runner — runs AlphaEdge on multiple symbols simultaneously.
+
+    Performance notes:
+    - closed_pnls numpy array is rebuilt only when total_trades changes
+      (dirty-flag cache), eliminating the np.concatenate() call on every SSE tick.
+    - _attach_hooks stores hook references per-sim so they can be explicitly
+      cleared before a simulator is removed, preventing closure memory leaks.
+    - DB summary is cached with a 5-second TTL to avoid 5 SQLite reads/sec
+      during SSE streaming.
     """
+
     def __init__(
         self,
         symbols: List[str] = None,
@@ -28,11 +38,11 @@ class MultiAssetPortfolioRunner:
         if symbols is None:
             symbols = ["SOL-USDT", "BTC-USDT", "ETH-USDT"]
 
-        self.symbols = symbols
+        self.symbols        = symbols
         self.initial_capital = initial_capital
-        self.strategy_name = strategy_name
-        self.profile_id = profile_id
-        self.preset_key = "alpha_edge_1000"
+        self.strategy_name  = strategy_name
+        self.profile_id     = profile_id
+        self.preset_key     = "alpha_edge_1000"
         self.preset_info: Dict[str, Any] = {}
 
         self.risk_guard = RiskGuard(
@@ -42,12 +52,20 @@ class MultiAssetPortfolioRunner:
             max_exposure_pct=0.25,
         )
         self.db_manager = DatabaseManager()
+
         # DB query cache — avoid hitting SQLite on every SSE tick (5/sec)
-        self._db_cache_ttl: float = 30.0   # seconds between DB reads
-        self._db_cache_ts: float = 0.0
-        self._db_cache: Dict[str, Any] = {"total_trades":0,"win_trades":0,"win_rate_pct":0.0,"total_pnl":0.0,"avg_pnl":0.0}
+        self._db_cache_ttl: float = 5.0
+        self._db_cache_ts:  float = 0.0
+        self._db_cache: Dict[str, Any] = {
+            "total_trades": 0, "win_trades": 0,
+            "win_rate_pct": 0.0, "total_pnl": 0.0, "avg_pnl": 0.0,
+        }
         self._recent_trades_cache: list = []
-        self._recent_trades_ts: float = 0.0
+        self._recent_trades_ts:   float = 0.0
+
+        # Dirty-flag cache for aggregated closed_pnls — rebuilt only on new trade
+        self._closed_pnls_cache:  np.ndarray = np.array([], dtype=np.float64)
+        self._closed_pnls_trades: int = -1   # last known total_trades count
 
         self.simulators: Dict[str, SubSecondTickSimulator] = {}
         alloc_per_symbol = initial_capital / len(symbols)
@@ -63,7 +81,16 @@ class MultiAssetPortfolioRunner:
 
         logger.info(f"🚀 Portfolio Runner [{profile_id}] initialized: {symbols}")
 
+    # ------------------------------------------------------------------
+    # Hook management
+    # ------------------------------------------------------------------
+
     def _attach_hooks(self, sim: SubSecondTickSimulator):
+        """
+        Attaches portfolio-level risk and DB hooks to a simulator.
+        References are stored on the sim object so they can be explicitly
+        cleared before removal (prevents closure memory leaks).
+        """
         runner = self
 
         def on_trade_open(pos):
@@ -73,7 +100,8 @@ class MultiAssetPortfolioRunner:
             )
             if not allowed:
                 logger.warning(
-                    f"🛡️ Risk Guard [{runner.profile_id}] rejected {pos.symbol} {pos.side}: {reason}"
+                    f"🛡️ Risk Guard [{runner.profile_id}] rejected "
+                    f"{pos.symbol} {pos.side}: {reason}"
                 )
                 event_logger.log(
                     category="RISK",
@@ -85,7 +113,10 @@ class MultiAssetPortfolioRunner:
                 return False
             event_logger.log(
                 category="RISK",
-                message=f"Risk Guard APROBÓ {pos.side} en {pos.symbol} (${sim.execution_engine.capital:.2f})",
+                message=(
+                    f"Risk Guard APROBÓ {pos.side} en {pos.symbol} "
+                    f"(${sim.execution_engine.capital:.2f})"
+                ),
                 symbol=pos.symbol,
                 profile_id=runner.profile_id,
                 level="INFO",
@@ -112,22 +143,46 @@ class MultiAssetPortfolioRunner:
             is_win = pos.pnl > 0
             event_logger.log(
                 category="ORDER",
-                message=f"{pos.side} CERRADA en {pos.symbol} -> PnL: ${pos.pnl:+.4f} ({getattr(pos, 'status', '')})",
+                message=(
+                    f"{pos.side} CERRADA en {pos.symbol} → "
+                    f"PnL: ${pos.pnl:+.4f} ({getattr(pos, 'status', '')})"
+                ),
                 symbol=pos.symbol,
                 profile_id=runner.profile_id,
                 level="SUCCESS" if is_win else "ERROR",
             )
 
-        sim.execution_engine.on_trade_open = on_trade_open
+        # Store references on sim for explicit cleanup
+        sim._portfolio_on_open  = on_trade_open
+        sim._portfolio_on_close = on_trade_close
+        sim.execution_engine.on_trade_open  = on_trade_open
         sim.execution_engine.on_trade_close = on_trade_close
+
+    def _detach_hooks(self, sim: SubSecondTickSimulator):
+        """Clears portfolio-level hooks and closure references before removal."""
+        sim.execution_engine.on_trade_open  = None
+        sim.execution_engine.on_trade_close = None
+        sim._portfolio_on_open  = None
+        sim._portfolio_on_close = None
+
+    # ------------------------------------------------------------------
+    # Preset / mode management
+    # ------------------------------------------------------------------
 
     def set_strategy(self, strategy_name: str):
         self.strategy_name = strategy_name
         for sim in self.simulators.values():
             sim.set_strategy(strategy_name)
 
-    def load_preset(self, preset_key: str, custom_capital: Optional[float] = None, custom_symbols: Optional[List[str]] = None):
-        presets_file = os.path.join(os.path.dirname(__file__), "..", "config", "strategy_presets.json")
+    def load_preset(
+        self,
+        preset_key: str,
+        custom_capital: Optional[float] = None,
+        custom_symbols: Optional[List[str]] = None,
+    ):
+        presets_file = os.path.join(
+            os.path.dirname(__file__), "..", "config", "strategy_presets.json"
+        )
         if not os.path.exists(presets_file):
             return
 
@@ -138,45 +193,61 @@ class MultiAssetPortfolioRunner:
         if preset_key not in presets:
             return
 
-        preset = presets[preset_key]
+        preset  = presets[preset_key]
         symbols = custom_symbols or preset.get("symbols", ["SOL-USDT"])
-        capital = custom_capital if (custom_capital and custom_capital > 0) else preset.get("initial_capital", 1000.0)
+        capital = (
+            custom_capital
+            if (custom_capital and custom_capital > 0)
+            else preset.get("initial_capital", 1000.0)
+        )
         max_dd = preset.get("max_daily_drawdown_pct", 0.05)
 
-        self.preset_key = preset_key
+        self.preset_key  = preset_key
         self.preset_info = {
-            "key": preset_key,
-            "name": preset.get("name", preset_key),
-            "description": preset.get("description", ""),
-            "badge": preset.get("badge", "ALPHAEDGE"),
+            "key":             preset_key,
+            "name":            preset.get("name", preset_key),
+            "description":     preset.get("description", ""),
+            "badge":           preset.get("badge", "ALPHAEDGE"),
             "initial_capital": capital,
-            "symbols": symbols,
+            "symbols":         symbols,
         }
         self.initial_capital = capital
-        self.symbols = symbols
+        self.symbols         = symbols
 
         existing_syms = set(self.simulators.keys())
-        new_syms = set(symbols)
-        alloc_per_symbol = capital / len(symbols)
+        new_syms      = set(symbols)
+        alloc_per_sym = capital / len(symbols)
 
+        # Remove simulators no longer needed — detach hooks first to free closures
         for sym in existing_syms - new_syms:
+            self._detach_hooks(self.simulators[sym])
             self.simulators[sym].ws_client.stop()
             del self.simulators[sym]
 
+        # Add or update simulators
         for sym in new_syms:
             if sym not in self.simulators:
-                sim = SubSecondTickSimulator(symbol=sym, initial_capital=alloc_per_symbol, strategy_name=self.strategy_name)
+                sim = SubSecondTickSimulator(
+                    symbol=sym,
+                    initial_capital=alloc_per_sym,
+                    strategy_name=self.strategy_name,
+                )
                 self._attach_hooks(sim)
                 self.simulators[sym] = sim
             else:
-                self.simulators[sym].execution_engine.capital = alloc_per_symbol
+                self.simulators[sym].execution_engine.capital = alloc_per_sym
 
-        self.risk_guard.max_daily_drawdown_pct = max_dd
-        self.risk_guard.peak_equity = capital
-        self.risk_guard.starting_daily_capital = capital
-        self.risk_guard.initial_capital = capital
+        self.risk_guard.max_daily_drawdown_pct  = max_dd
+        self.risk_guard.peak_equity             = capital
+        self.risk_guard.starting_daily_capital  = capital
+        self.risk_guard.initial_capital         = capital
 
-        logger.info(f"📊 Preset [{self.profile_id}] -> '{preset_key}' (${capital:,.2f}, {symbols})")
+        # Invalidate PnL cache after preset change
+        self._closed_pnls_trades = -1
+
+        logger.info(
+            f"📊 Preset [{self.profile_id}] → '{preset_key}' (${capital:,.2f}, {symbols})"
+        )
 
     def set_mode(self, use_live: bool):
         for sim in self.simulators.values():
@@ -189,51 +260,84 @@ class MultiAssetPortfolioRunner:
     def reset_portfolio(self):
         alloc = self.initial_capital / len(self.symbols)
         for sim in self.simulators.values():
-            sim.execution_engine.capital = alloc
-            sim.execution_engine.cum_pnl = 0.0
+            sim.execution_engine.capital    = alloc
+            sim.execution_engine.cum_pnl    = 0.0
             sim.execution_engine.total_trades = 0
-            sim.execution_engine.wins = 0
-            sim.execution_engine.losses = 0
+            sim.execution_engine.wins       = 0
+            sim.execution_engine.losses     = 0
             sim.execution_engine.peak_equity = alloc
+            sim.execution_engine._gross_wins   = 0.0
+            sim.execution_engine._gross_losses = 0.0
+            sim.execution_engine._pnl_window.clear()
             sim.execution_engine.active_positions.clear()
             sim.execution_engine.closed_positions.clear()
             sim.tick_count = 0
         self.risk_guard.reset_circuit_breaker(self.initial_capital)
+        self._closed_pnls_trades = -1   # invalidate cache
+
+    # ------------------------------------------------------------------
+    # Summary computation
+    # ------------------------------------------------------------------
+
+    def _get_closed_pnls(self) -> np.ndarray:
+        """
+        Returns a numpy array of all closed trade PnLs.
+        Uses a dirty-flag cache: only rebuilds when total_trades has changed,
+        eliminating O(n) np.concatenate on every SSE tick (was 5/sec).
+        """
+        sims = list(self.simulators.values())
+        current_total = sum(s.execution_engine.total_trades for s in sims)
+
+        if current_total != self._closed_pnls_trades:
+            self._closed_pnls_cache = np.concatenate([
+                np.fromiter(
+                    (p.pnl for p in s.execution_engine.closed_positions),
+                    dtype=np.float64,
+                )
+                for s in sims
+            ]) if sims else np.array([], dtype=np.float64)
+            self._closed_pnls_trades = current_total
+
+        return self._closed_pnls_cache
 
     def get_portfolio_summary(self) -> Dict[str, Any]:
         sims = list(self.simulators.values())
-        total_capital = sum(s.execution_engine.capital for s in sims)
-        total_pnl     = sum(s.execution_engine.cum_pnl for s in sims)
-        total_trades  = sum(s.execution_engine.total_trades for s in sims)
-        total_wins    = sum(s.execution_engine.wins for s in sims)
-        win_rate = (total_wins / total_trades * 100) if total_trades > 0 else 0.0
 
-        # Aggregate closed PnLs using numpy for fast vectorized stats
-        closed_pnls = np.concatenate([
-            np.fromiter((p.pnl for p in s.execution_engine.closed_positions), dtype=np.float64)
-            for s in sims
-        ]) if sims else np.array([], dtype=np.float64)
+        total_capital = sum(s.execution_engine.capital       for s in sims)
+        total_pnl     = sum(s.execution_engine.cum_pnl       for s in sims)
+        total_trades  = sum(s.execution_engine.total_trades  for s in sims)
+        total_wins    = sum(s.execution_engine.wins          for s in sims)
+        win_rate      = (total_wins / total_trades * 100) if total_trades > 0 else 0.0
 
+        # Cached PnL array — O(1) if no new trades
+        closed_pnls = self._get_closed_pnls()
+
+        # Profit Factor
         if closed_pnls.size > 0:
-            wins_arr   = closed_pnls[closed_pnls > 0]
-            losses_arr = closed_pnls[closed_pnls < 0]
+            wins_arr     = closed_pnls[closed_pnls > 0]
+            losses_arr   = closed_pnls[closed_pnls < 0]
             gross_wins   = wins_arr.sum()
             gross_losses = abs(losses_arr.sum())
-            profit_factor = round(gross_wins / gross_losses, 2) if gross_losses > 0 else (float(gross_wins) if gross_wins > 0 else 0.0)
+            profit_factor = (
+                round(gross_wins / gross_losses, 2) if gross_losses > 0
+                else (float(gross_wins) if gross_wins > 0 else 0.0)
+            )
         else:
             profit_factor = 0.0
 
+        # Sharpe Ratio (requires >= 5 trades)
         sharpe_ratio = 0.0
         if closed_pnls.size >= 5:
-            prev = closed_pnls[:-1]
+            prev    = closed_pnls[:-1]
             returns = np.diff(closed_pnls) / (np.abs(prev) + 1e-9)
-            std = returns.std()
+            std     = returns.std()
             if std > 0:
                 sharpe_ratio = round((returns.mean() / std) * np.sqrt(252), 2)
 
-        per_symbol_metrics = {}
+        # Per-symbol metrics
+        per_symbol_metrics: Dict[str, Any] = {}
         for sym, sim in self.simulators.items():
-            metrics  = sim.latest_metrics or {}
+            metrics   = sim.latest_metrics or {}
             sim_stats = sim.execution_engine.get_stats()
             per_symbol_metrics[sym] = {
                 "mid_price":     metrics.get("mid_price", 0.0),
@@ -245,12 +349,12 @@ class MultiAssetPortfolioRunner:
                 "latest_signal": sim.latest_signal,
             }
 
-        # TTL-cached DB queries — avoid 5 SQLite reads/sec during streaming
+        # TTL-cached DB queries
         now = time.time()
         if now - self._db_cache_ts >= self._db_cache_ttl:
-            self._db_cache         = self.db_manager.get_total_summary()
-            self._recent_trades_cache = self.db_manager.get_recent_trades(limit=10)
-            self._db_cache_ts      = now
+            self._db_cache              = self.db_manager.get_total_summary()
+            self._recent_trades_cache   = self.db_manager.get_recent_trades(limit=10)
+            self._db_cache_ts           = now
 
         return {
             "profile_id":       self.profile_id,
@@ -273,23 +377,33 @@ class MultiAssetPortfolioRunner:
 
 class MultiProfileEngineManager:
     """Single-profile engine manager (simplified)."""
+
     def __init__(self):
-        self.active_mode = "single"
+        self.active_mode      = "single"
         self.active_preset_key = "alpha_edge_1000"
         self.use_live_market_data = True
-        self.is_running = True
+        self.is_running       = True
 
-        self.portfolio_peak_equity = 0.0
-        self.portfolio_max_drawdown_pct = 0.08
-        self.portfolio_circuit_breaker = False
+        self.portfolio_peak_equity           = 0.0
+        self.portfolio_max_drawdown_pct      = 0.08
+        self.portfolio_circuit_breaker       = False
         self.portfolio_circuit_breaker_reason = ""
 
         self.single_runner = MultiAssetPortfolioRunner(profile_id="default")
         self.single_runner.load_preset(self.active_preset_key)
 
-    def select_preset_or_mode(self, preset_key: str, custom_capital: Optional[float] = None, custom_symbols: Optional[List[str]] = None):
+    def select_preset_or_mode(
+        self,
+        preset_key: str,
+        custom_capital: Optional[float] = None,
+        custom_symbols: Optional[List[str]] = None,
+    ):
         self.active_preset_key = preset_key
-        self.single_runner.load_preset(preset_key, custom_capital=custom_capital, custom_symbols=custom_symbols)
+        self.single_runner.load_preset(
+            preset_key,
+            custom_capital=custom_capital,
+            custom_symbols=custom_symbols,
+        )
         self.single_runner.set_engine_state(self.is_running)
         self.single_runner.set_mode(self.use_live_market_data)
 
@@ -307,29 +421,36 @@ class MultiProfileEngineManager:
 
     def reset_engine(self):
         self.single_runner.reset_portfolio()
-        self.portfolio_peak_equity = self.single_runner.initial_capital
-        self.portfolio_circuit_breaker = False
+        self.portfolio_peak_equity           = self.single_runner.initial_capital
+        self.portfolio_circuit_breaker       = False
         self.portfolio_circuit_breaker_reason = ""
 
     def get_total_portfolio_capital(self) -> float:
-        return sum(sim.execution_engine.capital for sim in self.single_runner.simulators.values())
+        return sum(
+            sim.execution_engine.capital
+            for sim in self.single_runner.simulators.values()
+        )
 
     def get_combined_summary(self) -> Dict[str, Any]:
-        summary = self.single_runner.get_portfolio_summary()
+        summary   = self.single_runner.get_portfolio_summary()
         summary["active_mode"] = "single"
-        summary["is_live"] = self.use_live_market_data
+        summary["is_live"]     = self.use_live_market_data
 
         total_cap = summary["total_capital"]
         if total_cap > self.portfolio_peak_equity:
             self.portfolio_peak_equity = total_cap
-        dd_pct = ((self.portfolio_peak_equity - total_cap) / self.portfolio_peak_equity * 100) if self.portfolio_peak_equity > 0 else 0.0
+
+        dd_pct = (
+            (self.portfolio_peak_equity - total_cap) / self.portfolio_peak_equity * 100
+            if self.portfolio_peak_equity > 0 else 0.0
+        )
 
         if dd_pct >= self.portfolio_max_drawdown_pct * 100:
-            self.portfolio_circuit_breaker = True
+            self.portfolio_circuit_breaker       = True
             self.portfolio_circuit_breaker_reason = f"Portfolio drawdown {dd_pct:.1f}%"
             self.set_engine_state(False)
 
-        summary["risk_guard"]["portfolio_peak_equity"] = round(self.portfolio_peak_equity, 2)
+        summary["risk_guard"]["portfolio_peak_equity"]  = round(self.portfolio_peak_equity, 2)
         summary["risk_guard"]["portfolio_drawdown_pct"] = round(dd_pct, 2)
         return summary
 
@@ -339,15 +460,17 @@ class MultiProfileEngineManager:
         total_capital = sum(b.get("capital", 1000) for b in bot_configs)
         self.single_runner.reset_portfolio()
         self.single_runner.initial_capital = total_capital
-        self.single_runner.symbols = [b.get("symbol", "SOL-USDT") for b in bot_configs]
-        self.single_runner.strategy_name = bot_configs[0].get("strategy", "alpha_edge")
+        self.single_runner.symbols         = [b.get("symbol", "SOL-USDT") for b in bot_configs]
+        self.single_runner.strategy_name   = bot_configs[0].get("strategy", "alpha_edge")
 
-        new_simulators = {}
+        new_simulators: Dict[str, SubSecondTickSimulator] = {}
         alloc_per_bot = total_capital / len(bot_configs)
-        for i, cfg in enumerate(bot_configs):
-            sym = cfg.get("symbol", "SOL-USDT")
-            strat = cfg.get("strategy", "alpha_edge")
+
+        for cfg in bot_configs:
+            sym     = cfg.get("symbol", "SOL-USDT")
+            strat   = cfg.get("strategy", "alpha_edge")
             capital = cfg.get("capital", alloc_per_bot)
+
             if sym in self.single_runner.simulators:
                 sim = self.single_runner.simulators[sym]
                 sim.execution_engine.capital = capital
@@ -360,7 +483,16 @@ class MultiProfileEngineManager:
                 )
                 self.single_runner._attach_hooks(sim)
             new_simulators[sym] = sim
+
+        # Detach hooks from simulators being replaced to avoid leaks
+        for sym, old_sim in self.single_runner.simulators.items():
+            if sym not in new_simulators:
+                self.single_runner._detach_hooks(old_sim)
+
         self.single_runner.simulators = new_simulators
         self.single_runner.set_mode(self.use_live_market_data)
         self.single_runner.set_engine_state(self.is_running)
-        logger.info(f"🔧 Configured {len(bot_configs)} custom bot(s): {[(b.get('symbol'), b.get('strategy')) for b in bot_configs]}")
+        logger.info(
+            f"🔧 Configured {len(bot_configs)} custom bot(s): "
+            f"{[(b.get('symbol'), b.get('strategy')) for b in bot_configs]}"
+        )
