@@ -958,6 +958,110 @@
             .mode-badge { padding: 4px 8px; font-size: 10px; }
         }
 
+        /* ═══ MOBILE GLASS DOCK & APP VIEW SWITCHER ═══ */
+        .mobile-dock { display: none; }
+
+        @media (max-width: 860px) {
+            body {
+                padding-bottom: 74px;
+            }
+            .mobile-dock {
+                display: flex;
+                position: fixed;
+                bottom: 10px;
+                left: 12px;
+                right: 12px;
+                height: 58px;
+                background: rgba(10, 15, 28, 0.94);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 20px;
+                z-index: 99999;
+                padding: 4px 6px;
+                align-items: center;
+                justify-content: space-around;
+                box-shadow: 0 12px 36px rgba(0,0,0,0.8), 0 0 24px rgba(59,130,246,0.18);
+            }
+            .mdock-tab {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                background: none;
+                border: none;
+                color: #64748b;
+                font-size: 10px;
+                font-weight: 500;
+                cursor: pointer;
+                padding: 5px 0;
+                border-radius: 14px;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .mdock-tab.active {
+                color: #60a5fa;
+                background: rgba(59, 130, 246, 0.14);
+                font-weight: 600;
+            }
+            .mdock-icon { font-size: 17px; line-height: 1; }
+            .mdock-text { letter-spacing: 0.2px; }
+
+            /* Tab visibility states on mobile */
+            body.mview-dashboard .sidebar { display: none !important; }
+            body.mview-dashboard .right-panel { display: none !important; }
+            body.mview-dashboard .main { display: flex !important; }
+
+            body.mview-actions .main { display: none !important; }
+            body.mview-actions .right-panel { display: none !important; }
+            body.mview-actions .sidebar {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 100% !important;
+                padding: 16px !important;
+                background: var(--bg-panel) !important;
+                border-radius: 16px !important;
+                margin: 0 !important;
+                overflow-x: visible !important;
+            }
+            body.mview-actions .sidebar .action-group {
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+            body.mview-actions .sidebar .action-group .btn {
+                width: 100% !important;
+                padding: 12px 16px !important;
+                font-size: 13px !important;
+            }
+            body.mview-actions .sidebar .sidebar-btn {
+                width: 100% !important;
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+            }
+            body.mview-actions .sidebar .sidebar-divider,
+            body.mview-actions .sidebar .sidebar-section-label { display: block !important; }
+
+            body.mview-markets .sidebar { display: none !important; }
+            body.mview-markets .right-panel { display: none !important; }
+            body.mview-markets .main { display: flex !important; }
+            body.mview-markets .kpi-row,
+            body.mview-markets #risk-bar,
+            body.mview-markets .chart-signal-grid { display: none !important; }
+            body.mview-markets #trades-panel { display: flex !important; width: 100% !important; margin: 0 !important; }
+
+            body.mview-terminal .main { display: none !important; }
+            body.mview-terminal .sidebar { display: none !important; }
+            body.mview-terminal .right-panel {
+                display: flex !important;
+                width: 100% !important;
+                height: calc(100vh - 130px) !important;
+                max-height: 100vh !important;
+                border: none !important;
+                border-radius: 16px !important;
+            }
+        }
+
         /* ═══ Settings Modal ═══ */
         .settings-tabs { display:flex; gap:4px; margin:16px 0 12px; border-bottom:1px solid var(--border); padding-bottom:8px; }
         .settings-tab { background:none; border:none; color:var(--text-dim); padding:6px 14px; font-size:12px; cursor:pointer; border-radius:6px; transition:all .15s; }
@@ -2436,6 +2540,36 @@
 
     // Tag signal chip after DOM ready
     document.getElementById('signal-chip').setAttribute('data-tt','signal-chip');
+
+    // Mobile App View Switcher
+    function switchMobileView(view, btn) {
+        document.body.classList.remove('mview-dashboard', 'mview-actions', 'mview-markets', 'mview-terminal');
+        document.body.classList.add('mview-' + view);
+        document.querySelectorAll('.mdock-tab').forEach(t => t.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    }
+    document.body.classList.add('mview-dashboard');
 </script>
+
+<!-- Mobile Floating Glass Navigation Dock (App-Like Experience) -->
+<nav class="mobile-dock" id="mobile-dock">
+    <button class="mdock-tab active" data-tab="dashboard" onclick="switchMobileView('dashboard', this)">
+        <span class="mdock-icon">📊</span>
+        <span class="mdock-text">Dashboard</span>
+    </button>
+    <button class="mdock-tab" data-tab="actions" onclick="switchMobileView('actions', this)">
+        <span class="mdock-icon">⚡</span>
+        <span class="mdock-text">Control</span>
+    </button>
+    <button class="mdock-tab" data-tab="markets" onclick="switchMobileView('markets', this)">
+        <span class="mdock-icon">📈</span>
+        <span class="mdock-text">Mercado</span>
+    </button>
+    <button class="mdock-tab" data-tab="terminal" onclick="switchMobileView('terminal', this)">
+        <span class="mdock-icon">📜</span>
+        <span class="mdock-text">Consola</span>
+    </button>
+</nav>
+
 </body>
 </html>
