@@ -47,6 +47,47 @@ def format_uptime(seconds: int) -> str:
     return f"{hrs:02d}:{mins:02d}:{secs:02d}"
 
 
+def _build_state_payload():
+    if not ENGINE_MANAGER:
+        return {}
+    summary = ENGINE_MANAGER.get_combined_summary()
+    per_sym = summary.get("per_symbol", {})
+
+    now_str = time.strftime("%H:%M:%S")
+    with _PRICE_LOCK:
+        for sym, m in per_sym.items():
+            m_price = m.get("mid_price", 0.0)
+            if m_price > 0 and ENGINE_RUNNING:
+                if sym not in PRICE_HISTORIES:
+                    PRICE_HISTORIES[sym] = []
+                PRICE_HISTORIES[sym].append({"time": now_str, "price": m_price})
+                if len(PRICE_HISTORIES[sym]) > 40:
+                    PRICE_HISTORIES[sym].pop(0)
+
+        price_hist_snapshot = PRICE_HISTORIES.copy()
+        price_hist_first = list(price_hist_snapshot.values())[0] if price_hist_snapshot else []
+
+    sample_sim = list(ENGINE_MANAGER.single_runner.simulators.values())[0] if ENGINE_MANAGER.single_runner.simulators else None
+    latest_sig = sample_sim.latest_signal if sample_sim else {"signal": "NEUTRAL", "reason": "Analizando"}
+
+    proxy = get_proxy()
+    all_tickers = proxy.get_all_tickers() if proxy else {}
+
+    uptime_sec = get_current_uptime_seconds()
+    return {
+        "engine_running": ENGINE_RUNNING,
+        "uptime_seconds": uptime_sec,
+        "uptime_str": format_uptime(uptime_sec),
+        "price_histories": price_hist_snapshot,
+        "price_history": price_hist_first,
+        "portfolio": summary,
+        "all_tickers": all_tickers,
+        "signal": latest_sig if ENGINE_RUNNING else {"signal": "DETENIDO", "reason": "Bot pausado"},
+        "risk_guard": summary.get("risk_guard", {}),
+        "logs": event_logger.get_logs(limit=100),
+    }
+
+
 def _get_engine_config():
     config = {
         "market_mode": "live" if (ENGINE_MANAGER and ENGINE_MANAGER.use_live_market_data) else "demo",
@@ -138,10 +179,20 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
             with open(static_file, "rb") as f:
                 self.wfile.write(f.read())
 
+        elif path_clean == "/api/state":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            payload = _build_state_payload()
+            self.wfile.write(json.dumps(payload).encode("utf-8"))
+
         elif path_clean == "/api/stream":
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
-            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Cache-Control", "no-cache, no-transform")
+            self.send_header("X-Accel-Buffering", "no")
             self.send_header("Connection", "keep-alive")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
@@ -154,47 +205,11 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
 
             try:
                 while True:
-                    if ENGINE_MANAGER:
-                        summary = ENGINE_MANAGER.get_combined_summary()
-                        per_sym = summary.get("per_symbol", {})
-
-                        now_str = time.strftime("%H:%M:%S")
-                        with _PRICE_LOCK:
-                            for sym, m in per_sym.items():
-                                m_price = m.get("mid_price", 0.0)
-                                if m_price > 0 and ENGINE_RUNNING:
-                                    if sym not in PRICE_HISTORIES:
-                                        PRICE_HISTORIES[sym] = []
-                                    PRICE_HISTORIES[sym].append({"time": now_str, "price": m_price})
-                                    if len(PRICE_HISTORIES[sym]) > 40:
-                                        PRICE_HISTORIES[sym].pop(0)
-
-                            price_hist_snapshot = PRICE_HISTORIES.copy()
-                            price_hist_first = list(price_hist_snapshot.values())[0] if price_hist_snapshot else []
-
-                        sample_sim = list(ENGINE_MANAGER.single_runner.simulators.values())[0] if ENGINE_MANAGER.single_runner.simulators else None
-                        latest_sig = sample_sim.latest_signal if sample_sim else {"signal": "NEUTRAL", "reason": "Analizando"}
-
-                        proxy = get_proxy()
-                        all_tickers = proxy.get_all_tickers() if proxy else {}
-
-                        uptime_sec = get_current_uptime_seconds()
-                        payload = {
-                            "engine_running": ENGINE_RUNNING,
-                            "uptime_seconds": uptime_sec,
-                            "uptime_str": format_uptime(uptime_sec),
-                            "price_histories": price_hist_snapshot,
-                            "price_history": price_hist_first,
-                            "portfolio": summary,
-                            "all_tickers": all_tickers,
-                            "signal": latest_sig if ENGINE_RUNNING else {"signal": "DETENIDO", "reason": "Bot pausado"},
-                            "risk_guard": summary["risk_guard"],
-                            "logs": event_logger.get_logs(limit=100),
-                        }
-                        msg = f"data: {json.dumps(payload)}\n\n"
-                        self.wfile.write(msg.encode("utf-8"))
-                        self.wfile.flush()
-                    time.sleep(0.2)
+                    payload = _build_state_payload()
+                    msg = f"data: {json.dumps(payload)}\n\n"
+                    self.wfile.write(msg.encode("utf-8"))
+                    self.wfile.flush()
+                    time.sleep(0.3)
             except Exception:
                 pass
 

@@ -1695,9 +1695,34 @@
         document.getElementById('uptime-chip').textContent = `${h}:${m}:${s}`;
     }, 1000);
 
-    // ── SSE Stream ───────────────────────────────
-    const evtSource = new EventSource('/api/stream');
-    evtSource.onmessage = e => updateUI(JSON.parse(e.data));
+    // ── SSE Stream + Fail-Safe REST Polling (Render Proxy Compatibility) ──
+    let isSseActive = false;
+    let sseTimeoutTimer = null;
+
+    try {
+        const evtSource = new EventSource('/api/stream');
+        evtSource.onmessage = e => {
+            isSseActive = true;
+            clearTimeout(sseTimeoutTimer);
+            updateUI(JSON.parse(e.data));
+            sseTimeoutTimer = setTimeout(() => { isSseActive = false; }, 2500);
+        };
+        evtSource.onerror = () => {
+            isSseActive = false;
+        };
+    } catch(err) {
+        isSseActive = false;
+    }
+
+    // Backup HTTP REST polling if EventSource is buffered or blocked by Render proxy
+    setInterval(() => {
+        if (!isSseActive) {
+            fetch('/api/state')
+                .then(res => res.json())
+                .then(data => updateUI(data))
+                .catch(() => {});
+        }
+    }, 600);
 
     function updateUI(data) {
         isRunning = data.engine_running;
