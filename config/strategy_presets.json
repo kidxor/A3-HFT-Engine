@@ -2,44 +2,43 @@
   "presets": {
     "alpha_edge_1000": {
       "name": "Perfil Conservador — AlphaEdge Trend-Pullback",
-      "description": "Perfil 1: Trend-Pullback con confirmación EMA20/50/200 + ADX + RSI + ATR | R:R 1:1.67",
+      "description": "Perfil 1: Single-Asset SOL-USDT con confirmación EMA20/50/200 + ADX≥22 + RSI + ATR | R:R 1:2.0 (Tarifas <2.5% de Ganancia)",
       "symbols": ["SOL-USDT"],
       "strategy_class": "AlphaEdgeStrategy",
       "strategy_name": "alpha_edge",
       "initial_capital": 1000.0,
       "risk_per_trade_pct": 0.01,
-      "atr_sl_mult": 1.5,
+      "atr_sl_mult": 1.2,
       "atr_tp_mult": 2.5,
       "max_daily_drawdown_pct": 0.05,
       "badge": "PERFIL 1 — CONSERVADOR"
     },
-    "orderbook_scalper_1000": {
-      "name": "Perfil Agresivo — Orderbook Scalper HFT",
-      "description": "Perfil 2: High-Frequency Micro Scalping por desbalance de libro de órdenes (VIR/OFI) | Ticks TP 12t / SL 6t",
-      "symbols": ["SOL-USDT", "BTC-USDT", "ETH-USDT"],
-      "strategy_class": "OrderbookScalperStrategy",
-      "strategy_name": "orderbook_scalper",
+    "alpha_edge_agresivo": {
+      "name": "Perfil Agresivo — AlphaEdge High-Reward",
+      "description": "Perfil 2: Single-Asset SOL-USDT con R:R 1:3.0 para maximizar rendimientos netos libres de comisión",
+      "symbols": ["SOL-USDT"],
+      "strategy_class": "AlphaEdgeStrategy",
+      "strategy_name": "alpha_edge",
       "initial_capital": 1000.0,
-      "risk_per_trade_pct": 0.005,
-      "target_ticks": 12,
-      "stop_ticks": 6,
-      "vir_threshold": 2.0,
+      "risk_per_trade_pct": 0.015,
+      "atr_sl_mult": 1.2,
+      "atr_tp_mult": 3.6,
       "max_daily_drawdown_pct": 0.05,
-      "badge": "PERFIL 2 — AGRESIVO HFT"
+      "badge": "PERFIL 2 — HIGH REWARD"
     },
     "alpha_edge_multi": {
       "name": "Perfil Multi-Asset — AlphaEdge Trend",
-      "description": "AlphaEdge ejecutándose en SOL + BTC + ETH en paralelo",
+      "description": "Perfil 3: AlphaEdge ejecutándose en SOL + BTC + ETH en paralelo | R:R 1:2.0 (Cero Fricción HFT)",
       "symbols": ["SOL-USDT", "BTC-USDT", "ETH-USDT"],
       "strategy_class": "AlphaEdgeStrategy",
       "strategy_name": "alpha_edge",
       "initial_capital": 3000.0,
       "risk_per_trade_pct": 0.01,
-      "atr_sl_mult": 1.5,
+      "atr_sl_mult": 1.2,
       "atr_tp_mult": 2.5,
       "max_daily_drawdown_pct": 0.05,
       "badge": "ALPHAEDGE MULTI"
     }
   },
-  "default_preset": "alpha_edge_1000"
+  "default_preset": "alpha_edge_multi"
 }
