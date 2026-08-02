@@ -463,10 +463,20 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-    def _send_json(self, data: dict):
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
+    def do_OPTIONS(self):
+        self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        self.end_headers()
+
+    def _send_json(self, data: dict, status_code: int = 200):
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("X-XSS-Protection", "1; mode=block")
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
