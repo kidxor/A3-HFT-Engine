@@ -70,6 +70,24 @@ def _build_state_payload():
     sample_sim = list(ENGINE_MANAGER.single_runner.simulators.values())[0] if ENGINE_MANAGER.single_runner.simulators else None
     latest_sig = sample_sim.latest_signal if sample_sim else {"signal": "NEUTRAL", "reason": "Analizando"}
 
+    candles_map = {}
+    if ENGINE_MANAGER and ENGINE_MANAGER.single_runner.simulators:
+        for sym, sim in ENGINE_MANAGER.single_runner.simulators.items():
+            hist = list(sim.candle_history)
+            if sim._current_candle:
+                hist.append(sim._current_candle)
+            candles_map[sym] = [
+                {
+                    "time": time.strftime("%H:%M:%S", time.localtime(c["timestamp"] / 1000.0)),
+                    "open": round(c["open"], 2),
+                    "high": round(c["high"], 2),
+                    "low": round(c["low"], 2),
+                    "close": round(c["close"], 2),
+                    "volume": round(c.get("volume", 0), 2)
+                }
+                for c in hist[-40:]
+            ]
+
     proxy = get_proxy()
     all_tickers = proxy.get_all_tickers() if proxy else {}
 
@@ -80,6 +98,7 @@ def _build_state_payload():
         "uptime_str": format_uptime(uptime_sec),
         "price_histories": price_hist_snapshot,
         "price_history": price_hist_first,
+        "candles": candles_map,
         "portfolio": summary,
         "all_tickers": all_tickers,
         "signal": latest_sig if ENGINE_RUNNING else {"signal": "DETENIDO", "reason": "Bot pausado"},

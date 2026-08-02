@@ -1950,18 +1950,95 @@
             bcSection.style.display = 'none';
         }
 
-        // Chart
-        const hist = priceHist[selectedChartSymbol] || data.price_history || [];
-        if (hist.length > 0 && isRunning) {
-            const prices = hist.map(h => h.price);
-            const mn = Math.min(...prices), mx = Math.max(...prices);
-            const mg = (mx - mn) * 0.12 || 0.05;
-            chart.options.scales.y.min = mn - mg;
-            chart.options.scales.y.max = mx + mg;
-            chart.data.labels = hist.map(h => h.time);
-            chart.data.datasets[0].data = prices;
-            chart.data.datasets[0].label = selectedChartSymbol;
+        if (portfolio.preset_info && portfolio.preset_info.name) {
+            const sbProfileEl = document.getElementById('sidebar-profile');
+            if (sbProfileEl) sbProfileEl.textContent = portfolio.preset_info.name;
+        }
+
+        // Chart — Render Japanese Candlesticks (Velas Japonesas)
+        const candlesMap = data.candles || {};
+        const symCandles = candlesMap[selectedChartSymbol] || [];
+
+        if (symCandles.length > 0 && isRunning) {
+            const labels = symCandles.map(c => c.time);
+            const wickData = [];
+            const bodyData = [];
+            const bgColors = [];
+
+            let allMin = Infinity, allMax = -Infinity;
+
+            symCandles.forEach(c => {
+                const isBull = c.close >= c.open;
+                const color = isBull ? '#10b981' : '#ef4444';
+                
+                wickData.push([c.low, c.high]);
+
+                let bMin = Math.min(c.open, c.close);
+                let bMax = Math.max(c.open, c.close);
+                if (bMin === bMax) {
+                    bMax = bMin + (c.close * 0.0001 || 0.01);
+                }
+                bodyData.push([bMin, bMax]);
+                bgColors.push(color);
+
+                if (c.low < allMin) allMin = c.low;
+                if (c.high > allMax) allMax = c.high;
+            });
+
+            const margin = (allMax - allMin) * 0.12 || 0.05;
+            chart.options.scales.y.min = Math.max(0, allMin - margin);
+            chart.options.scales.y.max = allMax + margin;
+
+            chart.data.labels = labels;
+            chart.data.datasets = [
+                {
+                    label: 'Mechas',
+                    type: 'bar',
+                    data: wickData,
+                    backgroundColor: bgColors,
+                    borderColor: bgColors,
+                    borderWidth: 1,
+                    barPercentage: 0.14,
+                    categoryPercentage: 0.8,
+                    order: 2
+                },
+                {
+                    label: `${selectedChartSymbol} (Velas Japonesas)`,
+                    type: 'bar',
+                    data: bodyData,
+                    backgroundColor: bgColors,
+                    borderColor: bgColors,
+                    borderWidth: 1,
+                    borderRadius: 2,
+                    barPercentage: 0.65,
+                    categoryPercentage: 0.8,
+                    order: 1
+                }
+            ];
             chart.update('none');
+        } else {
+            const hist = priceHist[selectedChartSymbol] || data.price_history || [];
+            if (hist.length > 0 && isRunning) {
+                const prices = hist.map(h => h.price);
+                const mn = Math.min(...prices), mx = Math.max(...prices);
+                const mg = (mx - mn) * 0.12 || 0.05;
+                chart.options.scales.y.min = mn - mg;
+                chart.options.scales.y.max = mx + mg;
+                chart.data.labels = hist.map(h => h.time);
+                chart.data.datasets = [{
+                    label: selectedChartSymbol,
+                    type: 'line',
+                    data: prices,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.06)',
+                    borderWidth: 1.5,
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 0,
+                    pointHoverRadius: 3
+                }];
+                chart.update('none');
+            }
         }
 
         // Update chart symbol select
@@ -2609,12 +2686,20 @@
 
     // ── Profiles & Strategies Management ──────────────────
     function openProfilesModal() {
-        document.getElementById('profiles-overlay').style.display = 'flex';
+        const modal = document.getElementById('profiles-overlay');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
         fetchProfilesData();
     }
 
     function closeProfilesModal() {
-        document.getElementById('profiles-overlay').style.display = 'none';
+        const modal = document.getElementById('profiles-overlay');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
     }
 
     function fetchProfilesData() {

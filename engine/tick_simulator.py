@@ -87,6 +87,19 @@ class SubSecondTickSimulator:
 
     def set_strategy(self, strategy_name: str):
         self.strategy_name = strategy_name
+        strategy_class = STRATEGY_REGISTRY.get(
+            strategy_name, STRATEGY_REGISTRY[DEFAULT_STRATEGY]
+        )
+        if strategy_name == "alpha_edge":
+            self.strategy = strategy_class(
+                ema_fast=20, ema_slow=50, ema_trend=200,
+                adx_min=20.0, atr_sl_mult=1.5, atr_tp_mult=2.5,
+                risk_per_trade_pct=0.01, pullback_tolerance=0.003,
+                cooldown_candles=3, atr_min_mult=0.002,
+            )
+        else:
+            self.strategy = strategy_class()
+        logger.info(f"🔄 Strategy updated to '{strategy_name}' ({self.strategy.__class__.__name__}) for {self.symbol}")
 
     def _attach_risk_hooks(self):
         sim = self
