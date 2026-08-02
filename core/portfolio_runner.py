@@ -202,14 +202,17 @@ class MultiAssetPortfolioRunner:
         )
         max_dd = preset.get("max_daily_drawdown_pct", 0.05)
 
-        self.preset_key  = preset_key
-        self.preset_info = {
+        strat_name = preset.get("strategy_name", "alpha_edge")
+        self.preset_key    = preset_key
+        self.strategy_name = strat_name
+        self.preset_info   = {
             "key":             preset_key,
             "name":            preset.get("name", preset_key),
             "description":     preset.get("description", ""),
             "badge":           preset.get("badge", "ALPHAEDGE"),
             "initial_capital": capital,
             "symbols":         symbols,
+            "strategy_name":   strat_name,
         }
         self.initial_capital = capital
         self.symbols         = symbols
@@ -230,12 +233,13 @@ class MultiAssetPortfolioRunner:
                 sim = SubSecondTickSimulator(
                     symbol=sym,
                     initial_capital=alloc_per_sym,
-                    strategy_name=self.strategy_name,
+                    strategy_name=strat_name,
                 )
                 self._attach_hooks(sim)
                 self.simulators[sym] = sim
             else:
                 self.simulators[sym].execution_engine.capital = alloc_per_sym
+                self.simulators[sym].set_strategy(strat_name)
 
         self.risk_guard.max_daily_drawdown_pct  = max_dd
         self.risk_guard.peak_equity             = capital

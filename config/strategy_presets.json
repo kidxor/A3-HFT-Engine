@@ -1,34 +1,38 @@
 {
   "presets": {
     "alpha_edge_1000": {
-      "name": "AlphaEdge ($1,000 Capital)",
-      "description": "Trend-Pullback con confirmación múltiple | R:R 1:1.67 | ADX > 20 | Cooldown 3 velas",
+      "name": "Perfil Conservador — AlphaEdge Trend-Pullback",
+      "description": "Perfil 1: Trend-Pullback con confirmación EMA20/50/200 + ADX + RSI + ATR | R:R 1:1.67",
       "symbols": ["SOL-USDT"],
       "strategy_class": "AlphaEdgeStrategy",
+      "strategy_name": "alpha_edge",
       "initial_capital": 1000.0,
       "risk_per_trade_pct": 0.01,
       "atr_sl_mult": 1.5,
       "atr_tp_mult": 2.5,
       "max_daily_drawdown_pct": 0.05,
-      "badge": "ALPHAEDGE"
+      "badge": "PERFIL 1 — CONSERVADOR"
     },
-    "alpha_edge_2500": {
-      "name": "AlphaEdge ($2,500 Capital)",
-      "description": "Trend-Pullback con confirmación múltiple | R:R 1:1.67 | ADX > 20 | Cooldown 3 velas",
-      "symbols": ["SOL-USDT"],
-      "strategy_class": "AlphaEdgeStrategy",
-      "initial_capital": 2500.0,
-      "risk_per_trade_pct": 0.01,
-      "atr_sl_mult": 1.5,
-      "atr_tp_mult": 2.5,
+    "orderbook_scalper_1000": {
+      "name": "Perfil Agresivo — Orderbook Scalper HFT",
+      "description": "Perfil 2: High-Frequency Micro Scalping por desbalance de libro de órdenes (VIR/OFI) | Ticks TP 12t / SL 6t",
+      "symbols": ["SOL-USDT", "BTC-USDT", "ETH-USDT"],
+      "strategy_class": "OrderbookScalperStrategy",
+      "strategy_name": "orderbook_scalper",
+      "initial_capital": 1000.0,
+      "risk_per_trade_pct": 0.005,
+      "target_ticks": 12,
+      "stop_ticks": 6,
+      "vir_threshold": 2.0,
       "max_daily_drawdown_pct": 0.05,
-      "badge": "ALPHAEDGE"
+      "badge": "PERFIL 2 — AGRESIVO HFT"
     },
     "alpha_edge_multi": {
-      "name": "AlphaEdge Multi-Asset",
-      "description": "AlphaEdge en SOL + BTC + ETH simultáneamente",
+      "name": "Perfil Multi-Asset — AlphaEdge Trend",
+      "description": "AlphaEdge ejecutándose en SOL + BTC + ETH en paralelo",
       "symbols": ["SOL-USDT", "BTC-USDT", "ETH-USDT"],
       "strategy_class": "AlphaEdgeStrategy",
+      "strategy_name": "alpha_edge",
       "initial_capital": 3000.0,
       "risk_per_trade_pct": 0.01,
       "atr_sl_mult": 1.5,

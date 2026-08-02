@@ -253,23 +253,25 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
             event_logger.log("SYSTEM", "🧹 Base de datos limpiada", level="SUCCESS")
             self._send_json({"status": "cleared"})
 
-        elif path_clean == "/api/presets":
+        elif path_clean in ["/api/presets", "/api/profiles"]:
             presets_file = os.path.join(os.path.dirname(__file__), "config", "strategy_presets.json")
             if os.path.exists(presets_file):
                 with open(presets_file, "r") as f:
                     presets_data = json.load(f)
+                if ENGINE_MANAGER:
+                    presets_data["active_preset"] = ENGINE_MANAGER.active_preset_key
                 self._send_json(presets_data)
             else:
                 self._send_json({"presets": {}})
 
-        elif path_clean in ["/api/strategy", "/api/select_profile"]:
+        elif path_clean in ["/api/strategy", "/api/select_profile", "/api/profiles/select"]:
             params = self.path.split("?")
             preset_key = "alpha_edge_1000"
             custom_capital = None
             custom_symbols = None
             if len(params) > 1:
                 for q in params[1].split("&"):
-                    if q.startswith("name=") or q.startswith("key="):
+                    if q.startswith("name=") or q.startswith("key=") or q.startswith("preset_key="):
                         preset_key = q.split("=")[1]
                     elif q.startswith("capital="):
                         try:
@@ -289,7 +291,7 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
                     proxy.update_symbols(ENGINE_MANAGER.single_runner.symbols)
             ACCUMULATED_UPTIME = 0.0
             ENGINE_START_TIME = time.time()
-            event_logger.log("SYSTEM", f"📊 Preset -> '{preset_key}'", level="INFO")
+            event_logger.log("SYSTEM", f"📊 Perfil Activo -> '{preset_key}'", level="SUCCESS")
             self._send_json({"status": "updated", "preset_key": preset_key})
 
         elif path_clean == "/api/mode":

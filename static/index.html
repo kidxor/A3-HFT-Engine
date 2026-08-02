@@ -1167,6 +1167,10 @@
         <div class="sidebar-divider"></div>
         <div class="sidebar-section-label">Configuración Activa</div>
 
+        <button class="sidebar-btn active" onclick="openProfilesModal()" id="btn-profiles" data-tt="sbtn-profiles" style="background:rgba(59,130,246,0.1);color:#60a5fa;">
+            <span class="icon">👤</span>
+            <span>Perfiles & Estrategias</span>
+        </button>
         <button class="sidebar-btn" onclick="openWizard(1)" data-tt="sidebar-profile">
             <span class="icon">⚙</span>
             <span id="sidebar-profile">Perfil Agresivo</span>
@@ -1629,6 +1633,27 @@
         <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
             <button class="btn btn-ghost" onclick="closeSettings()">Cancelar</button>
             <button class="btn btn-primary" onclick="saveSettings()">💾 Aplicar Cambios</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ PROFILES MANAGEMENT MODAL -->
+<div class="overlay" id="profiles-overlay" style="display:none;">
+    <div class="modal" style="max-width:780px;max-height:90vh;overflow-y:auto;background:rgba(12,17,32,0.96);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div class="modal-title" style="margin:0;font-size:18px;font-weight:700;">👤 Gestión de Perfiles & Estrategias</div>
+            <button class="btn btn-ghost btn-sm" onclick="closeProfilesModal()">✕ Cerrar</button>
+        </div>
+        <div class="modal-sub" style="margin-bottom:20px;font-size:12px;color:var(--text-secondary);">
+            Selecciona o conmuta el perfil activo del motor en tiempo real. Se preservan ambos perfiles sin sobreescribir configuraciones.
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(330px, 1fr));gap:16px;margin-bottom:20px;" id="profiles-cards-container">
+            <!-- Rendered dynamically via JS -->
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border);">
+            <button class="btn btn-ghost" onclick="closeProfilesModal()">Cerrar</button>
         </div>
     </div>
 </div>
@@ -2581,6 +2606,88 @@
 
     // Tag signal chip after DOM ready
     document.getElementById('signal-chip').setAttribute('data-tt','signal-chip');
+
+    // ── Profiles & Strategies Management ──────────────────
+    function openProfilesModal() {
+        document.getElementById('profiles-overlay').style.display = 'flex';
+        fetchProfilesData();
+    }
+
+    function closeProfilesModal() {
+        document.getElementById('profiles-overlay').style.display = 'none';
+    }
+
+    function fetchProfilesData() {
+        fetch('/api/profiles')
+            .then(r => r.json())
+            .then(data => {
+                renderProfilesCards(data);
+            })
+            .catch(err => console.error('Error fetching profiles:', err));
+    }
+
+    function renderProfilesCards(data) {
+        const presets = data.presets || {};
+        const activeKey = data.active_preset || 'alpha_edge_1000';
+        const container = document.getElementById('profiles-cards-container');
+
+        let html = '';
+        Object.keys(presets).forEach(key => {
+            const p = presets[key];
+            const isActive = (key === activeKey);
+            const borderGlow = isActive
+                ? 'border: 2px solid var(--green); box-shadow: 0 0 24px rgba(16,185,129,0.3);'
+                : 'border: 1px solid rgba(255,255,255,0.08);';
+
+            html += `
+            <div class="panel" style="padding:20px; position:relative; ${borderGlow} border-radius:18px; background:linear-gradient(135deg, rgba(16,24,44,0.92) 0%, rgba(20,30,54,0.8) 100%); transition:all 0.25s;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+                    <div>
+                        <span style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase;">${escapeHtml(p.badge || 'ESTRATEGIA')}</span>
+                        <h3 style="font-size:15px;font-weight:700;color:var(--text-primary);margin-top:2px;">${escapeHtml(p.name)}</h3>
+                    </div>
+                    <span class="status-pill ${isActive ? 'status-on' : ''}" style="font-size:10px;padding:3px 8px;">
+                        <div class="pulse-dot ${isActive ? 'pulse-on' : 'pulse-off'}"></div>
+                        ${isActive ? 'ACTIVO' : 'STANDBY'}
+                    </span>
+                </div>
+
+                <p style="font-size:11px;color:var(--text-secondary);line-height:1.5;margin-bottom:16px;min-height:36px;">
+                    ${escapeHtml(p.description)}
+                </p>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:rgba(0,0,0,0.25);border-radius:12px;margin-bottom:18px;font-size:11px;">
+                    <div><span style="color:var(--text-dim)">Capital Base:</span> <b class="mono" style="color:var(--text-primary)">$${(p.initial_capital||1000).toLocaleString()}</b></div>
+                    <div><span style="color:var(--text-dim)">Riesgo/Trade:</span> <b class="mono" style="color:var(--blue)">${((p.risk_per_trade_pct||0.01)*100).toFixed(1)}%</b></div>
+                    <div><span style="color:var(--text-dim)">Estrategia:</span> <b class="mono" style="color:var(--text-primary)">${escapeHtml(p.strategy_name || 'alpha_edge')}</b></div>
+                    <div><span style="color:var(--text-dim)">Pares:</span> <b style="color:var(--green)">${(p.symbols||[]).join(', ')}</b></div>
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                    ${isActive ? `
+                        <button class="btn btn-success btn-full" disabled style="opacity:0.95;cursor:default;">
+                            🟢 Perfil Activo Actual
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary btn-full" onclick="activateProfile('${key}')">
+                            🚀 Activar Este Perfil
+                        </button>
+                    `}
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function activateProfile(key) {
+        fetch(`/api/profiles/select?preset_key=${key}`)
+            .then(r => r.json())
+            .then(() => {
+                fetchProfilesData();
+            })
+            .catch(err => console.error('Error activating profile:', err));
+    }
 
     // Mobile App View Switcher
     function switchMobileView(view, btn) {
