@@ -2248,18 +2248,31 @@
             }
         }
 
-        // Update chart symbol select
-        const syms = Object.keys(priceHist).length > 0 ? Object.keys(priceHist) : Object.keys(perSym);
-        if (syms.length > 0) {
+        // Dynamic Symbol Selector Options Syncing from Portfolio Active Symbols
+        const activeSyms = (portfolio.symbols && portfolio.symbols.length > 0)
+            ? portfolio.symbols
+            : (Object.keys(priceHist).length > 0 ? Object.keys(priceHist) : Object.keys(perSym));
+        if (activeSyms.length > 0) {
             const sel = document.getElementById('chart-symbol-select');
-            const cur = Array.from(sel.options).map(o => o.value);
-            if (JSON.stringify(cur) !== JSON.stringify(syms)) {
-                sel.innerHTML = syms.map(s => `<option value="${escapeHtml(s)}" ${s===selectedChartSymbol?'selected':''}>${escapeHtml(s)}</option>`).join('');
+            if (sel) {
+                const cur = Array.from(sel.options).map(o => o.value);
+                if (JSON.stringify(cur) !== JSON.stringify(activeSyms)) {
+                    sel.innerHTML = activeSyms.map(s => `<option value="${escapeHtml(s)}" ${s===selectedChartSymbol?'selected':''}>${escapeHtml(s)}</option>`).join('');
+                    if (!activeSyms.includes(selectedChartSymbol)) {
+                        selectedChartSymbol = activeSyms[0];
+                        sel.value = activeSyms[0];
+                    }
+                }
             }
         }
 
-        // Signal panel
-        const sig = signal.signal || 'NEUTRAL';
+        // Signal panel — syncs with selected chart symbol
+        let curSig = signal;
+        if (perSym[selectedChartSymbol] && perSym[selectedChartSymbol].latest_signal) {
+            curSig = perSym[selectedChartSymbol].latest_signal;
+        }
+
+        const sig = curSig.signal || 'NEUTRAL';
         const chip = document.getElementById('signal-chip');
         const reason = document.getElementById('signal-reason');
         if (!isRunning) {
@@ -2271,14 +2284,14 @@
         } else {
             chip.className = 'signal-badge signal-neutral'; chip.textContent = 'NEUTRAL';
         }
-        reason.textContent = signal.reason || 'Analizando mercado...';
+        reason.textContent = curSig.reason || 'Analizando mercado...';
 
-        const ind = signal.indicators || {};
-        document.getElementById('ind-strategy').textContent = (signal.strategy_name || portfolio.active_strategy || '—').toUpperCase();
-        document.getElementById('ind-ema').textContent = ind.ema_trend ? `$${ind.ema_trend > 10 ? ind.ema_trend.toFixed(2) : ind.ema_trend.toFixed(4)}` : '—';
+        const ind = curSig.indicators || {};
+        document.getElementById('ind-strategy').textContent = (curSig.strategy_name || portfolio.active_strategy || '—').toUpperCase();
+        document.getElementById('ind-ema').textContent = ind.ema_trend ? `$${ind.ema_trend > 10 ? ind.ema_trend.toFixed(2) : ind.ema_trend.toFixed(4)}` : (ind.vir ? `VIR ${ind.vir.toFixed(2)}x` : '—');
         const adx = ind.adx;
-        document.getElementById('ind-adx').textContent = adx !== undefined ? `${adx.toFixed(1)} ${adx > 25 ? '▲ Trend' : '● Lateral'}` : '—';
-        const tp = signal.tp_price, sl = signal.sl_price;
+        document.getElementById('ind-adx').textContent = adx !== undefined ? `${adx.toFixed(1)} ${adx > 25 ? '▲ Trend' : '● Lateral'}` : (ind.ofi !== undefined ? `OFI ${ind.ofi > 0 ? '+' : ''}${ind.ofi.toFixed(1)}` : '—');
+        const tp = curSig.tp_price, sl = curSig.sl_price;
         document.getElementById('ind-tpsl').textContent =
             `${tp ? (tp>10?`$${tp.toFixed(2)}`:`$${tp.toFixed(4)}`) : '—'} / ${sl ? (sl>10?`$${sl.toFixed(2)}`:`$${sl.toFixed(4)}`) : '—'}`;
 
