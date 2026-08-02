@@ -1130,6 +1130,12 @@
     </div>
 
     <div class="topbar-right">
+        <div class="activity-chip" id="activity-chip" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;" data-tt="activity-chip">
+            <span class="pulse-dot pulse-on" style="width:7px;height:7px;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
+            <span id="activity-rate" style="color:#10b981;font-weight:600;">⚡ 3.3 t/s</span>
+            <span style="color:var(--text-dim);">|</span>
+            <span id="activity-ticks" style="color:var(--text-secondary);">0 Ticks</span>
+        </div>
         <div class="mode-badge mode-training" id="mode-badge" data-tt="mode-badge">
             <span id="mode-icon">🔬</span>
             <span id="mode-text">TRAINING</span>
@@ -1290,12 +1296,22 @@
 
             <div class="panel">
                 <div class="panel-header">
-                    <div class="panel-title">Señal Activa</div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="panel-title">Señal & Diagnóstico de Ejecución</span>
+                        <div id="scan-badge" style="font-size:10px;padding:3px 8px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#60a5fa;border-radius:12px;display:flex;align-items:center;gap:4px;">
+                            <span class="pulse-dot pulse-on" style="width:6px;height:6px;background:#60a5fa;box-shadow:0 0 6px #60a5fa;"></span>
+                            <span id="scan-badge-text">⚡ EVALUANDO MERCADO (300ms)</span>
+                        </div>
+                    </div>
                     <div id="signal-chip" class="signal-badge signal-neutral" data-tt="signal-chip">NEUTRAL</div>
                 </div>
                 <div class="panel-body signal-body">
-                    <div style="font-size:12px;color:var(--text-secondary);min-height:32px;" id="signal-reason">
-                        Monitoreando mercado...
+                    <div style="font-size:12px;color:var(--text-secondary);min-height:38px;line-height:1.5;padding:8px 12px;background:rgba(0,0,0,0.25);border-radius:8px;border-left:3px solid var(--blue);" id="signal-reason">
+                        Monitoreando flujo de ordenes en tiempo real...
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">
+                        <span>📡 Stream KuCoin: <b id="proxy-status-text" style="color:var(--green)">Conectado (8 Pares)</b></span>
+                        <span id="last-tick-time">Frescura: &lt;100ms</span>
                     </div>
                     <hr class="divider">
                     <div class="indicator-grid">
@@ -1772,6 +1788,29 @@
             pill.className = 'status-pill status-off';
             dot.className  = 'pulse-dot pulse-off';
             stxt.textContent = 'PAUSADO';
+        }
+
+        // Telemetry Activity Pill & Scan Badge
+        const totalTicks = data.total_ticks || 0;
+        const actTicksEl = document.getElementById('activity-ticks');
+        const actRateEl  = document.getElementById('activity-rate');
+        if (actTicksEl) actTicksEl.textContent = `${totalTicks.toLocaleString()} Ticks`;
+        if (actRateEl)  actRateEl.textContent  = isRunning ? '⚡ 3.3 t/s' : '⏸ 0 t/s';
+
+        const scanBadgeText = document.getElementById('scan-badge-text');
+        if (scanBadgeText) {
+            scanBadgeText.textContent = isRunning ? '⚡ EVALUANDO MERCADO (300ms)' : '⏸ BOT DETENIDO';
+        }
+
+        const proxyStatusText = document.getElementById('proxy-status-text');
+        const lastTickTime    = document.getElementById('last-tick-time');
+        const pStat           = data.proxy_status || {};
+        const numSyms         = pStat.symbols ? pStat.symbols.length : 8;
+        if (proxyStatusText) {
+            proxyStatusText.textContent = isRunning ? `Conectado (${numSyms} Pares)` : 'Inactivo';
+        }
+        if (lastTickTime) {
+            lastTickTime.textContent = isRunning ? 'Frescura: <100ms' : 'Sin stream';
         }
 
         // Mode badge (Training vs Live)

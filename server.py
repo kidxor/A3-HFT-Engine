@@ -88,14 +88,21 @@ def _build_state_payload():
                 for c in hist[-40:]
             ]
 
+    total_ticks = 0
+    if ENGINE_MANAGER and ENGINE_MANAGER.single_runner.simulators:
+        total_ticks = sum(s.tick_count for s in ENGINE_MANAGER.single_runner.simulators.values())
+
     proxy = get_proxy()
     all_tickers = proxy.get_all_tickers() if proxy else {}
+    proxy_status = proxy.get_status() if proxy else {}
 
     uptime_sec = get_current_uptime_seconds()
     return {
         "engine_running": ENGINE_RUNNING,
         "uptime_seconds": uptime_sec,
         "uptime_str": format_uptime(uptime_sec),
+        "total_ticks": total_ticks,
+        "proxy_status": proxy_status,
         "price_histories": price_hist_snapshot,
         "price_history": price_hist_first,
         "candles": candles_map,
