@@ -1905,7 +1905,8 @@
         fill.style.width = `${gaugeW.toFixed(1)}%`;
         fill.style.background = gaugeW > 75 ? 'var(--red)' : gaugeW > 40 ? 'var(--amber)' : 'var(--green)';
         document.getElementById('risk-dd-val').textContent = `${ddPct.toFixed(2)}%`;
-        document.getElementById('risk-consec').textContent = `${risk.consecutive_losses||0} / 5`;
+        const maxConsec = rg.max_consecutive_losses || risk.max_consecutive_losses || 5;
+        document.getElementById('risk-consec').textContent = `${risk.consecutive_losses||0} / ${maxConsec}`;
         const riskBar = document.getElementById('risk-bar');
         const riskTxt = document.getElementById('risk-status-text');
         if (risk.circuit_breaker_triggered) {
@@ -1960,6 +1961,18 @@
         const symCandles = candlesMap[selectedChartSymbol] || [];
 
         if (symCandles.length > 0 && isRunning) {
+            const lastC = symCandles[symCandles.length - 1];
+            const oEl = document.getElementById('ohlc-open');
+            const hEl = document.getElementById('ohlc-high');
+            const lEl = document.getElementById('ohlc-low');
+            const cEl = document.getElementById('ohlc-close');
+            const vEl = document.getElementById('ohlc-vol');
+            if (oEl) oEl.textContent = lastC.open > 10 ? `$${lastC.open.toFixed(2)}` : `$${lastC.open.toFixed(4)}`;
+            if (hEl) hEl.textContent = lastC.high > 10 ? `$${lastC.high.toFixed(2)}` : `$${lastC.high.toFixed(4)}`;
+            if (lEl) lEl.textContent = lastC.low > 10 ? `$${lastC.low.toFixed(2)}` : `$${lastC.low.toFixed(4)}`;
+            if (cEl) cEl.textContent = lastC.close > 10 ? `$${lastC.close.toFixed(2)}` : `$${lastC.close.toFixed(4)}`;
+            if (vEl) vEl.textContent = `${lastC.volume.toFixed(1)}`;
+
             const labels = symCandles.map(c => c.time);
             const wickData = [];
             const bodyData = [];
