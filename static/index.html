@@ -1299,12 +1299,12 @@
             <div class="kpi-card" data-tt="capital">
                 <div class="kpi-label">Capital Total</div>
                 <div class="kpi-value" id="kpi-capital">$3,000.00</div>
-                <div class="kpi-meta" id="kpi-capital-sub">Riesgo 1.0% · $30/trade</div>
+                <div class="kpi-meta" id="kpi-capital-sub">Posición: 60% · $1,800/trade</div>
             </div>
             <div class="kpi-card" data-tt="pnl">
                 <div class="kpi-label">PnL Neto</div>
-                <div class="kpi-value kpi-positive" id="kpi-pnl">+$0.0000</div>
-                <div class="kpi-meta" id="kpi-pnl-sub">Meta sesión: +$300</div>
+                <div class="kpi-value kpi-positive" id="kpi-pnl">+$0.00</div>
+                <div class="kpi-meta" id="kpi-pnl-sub">TP: +$68 | SL: -$27 | R:R 2.53:1</div>
             </div>
             <div class="kpi-card" data-tt="winrate">
                 <div class="kpi-label">Win Rate</div>
@@ -1316,7 +1316,7 @@
                 <div class="kpi-value" id="kpi-dd">0.00%</div>
                 <div class="kpi-meta" id="kpi-dd-sub">Límite: 5.0%</div>
             </div>
-            <div class="kpi-card" data-tt="pnl" style="border-left:3px solid rgba(167,139,250,0.4);">
+            <div class="kpi-card" data-tt="pf" style="border-left:3px solid rgba(167,139,250,0.4);">
                 <div class="kpi-label">Profit Factor</div>
                 <div class="kpi-value" id="kpi-pf">0.00</div>
                 <div class="kpi-meta" id="kpi-pf-sub">Sharpe: <span id="kpi-sharpe">0.00</span></div>
@@ -2143,8 +2143,17 @@
         // Live net capital (Initial Capital + Total Net PnL)
         const initCap = (portfolio.preset_info && portfolio.preset_info.initial_capital)
             ? portfolio.preset_info.initial_capital
-            : (portfolio.total_capital || 1000);
+            : (portfolio.total_capital || 3000);
         const liveCapital = initCap + totalPnl;
+
+        // New algo: position = 60% of sub-capital, TP=3.8%, SL=1.5%
+        const posPct      = 0.60;
+        const tpPct       = 0.038;
+        const slPct       = 0.015;
+        const posSize     = liveCapital * posPct;
+        const tpNetUsd    = posSize * tpPct;
+        const slNetUsd    = posSize * slPct;
+        const netRR       = (tpPct / slPct).toFixed(2);
 
         // Win rate and trades count
         const totalTradesCount = (db.total_trades && db.total_trades > 0)
@@ -2154,11 +2163,19 @@
             ? (db.win_rate_pct || 0)
             : (portfolio.win_rate_percent || 0);
 
+        // PnL card
         const kpiPnl = document.getElementById('kpi-pnl');
-        kpiPnl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(4)}`;
+        kpiPnl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
         kpiPnl.className   = `kpi-value mono ${totalPnl >= 0 ? 'kpi-positive' : 'kpi-negative'}`;
+        const pnlSub = document.getElementById('kpi-pnl-sub');
+        if (pnlSub) pnlSub.textContent = `TP: +$${tpNetUsd.toFixed(0)} | SL: -$${slNetUsd.toFixed(0)} | R:R ${netRR}:1`;
 
-        document.getElementById('kpi-capital').textContent = `$${liveCapital.toFixed(2)}`;
+        // Capital card
+        document.getElementById('kpi-capital').textContent = `$${liveCapital.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+        const capSub = document.getElementById('kpi-capital-sub');
+        if (capSub) capSub.textContent = `Posición: 60% · $${posSize.toFixed(0)}/trade`;
+
+        // Win rate card
         document.getElementById('kpi-winrate').textContent = `${winRateVal.toFixed(1)}%`;
         document.getElementById('kpi-winrate-sub').textContent = `${totalTradesCount} trades cerrados`;
 
@@ -2188,16 +2205,13 @@
 
         if (portfolio.preset_info) {
             const info = portfolio.preset_info;
-            const riskPct = typeof info.risk_per_trade_pct === 'number' ? info.risk_per_trade_pct : 0.01;
-            document.getElementById('kpi-capital-sub').textContent =
-                `Riesgo ${(riskPct * 100).toFixed(1)}% · $${(liveCapital * riskPct).toFixed(0)}/trade`;
             const ddLim = typeof rg.max_daily_drawdown_pct === 'number'
                 ? rg.max_daily_drawdown_pct
                 : ((info.max_daily_drawdown_pct || 0.05) * 100);
             document.getElementById('kpi-dd-sub').textContent = `Límite: ${ddLim.toFixed(1)}%`;
             document.getElementById('risk-dd-lim').textContent = `${ddLim.toFixed(1)}%`;
             document.getElementById('sb-maxdd').textContent = `${ddLim.toFixed(1)}%`;
-            document.getElementById('sb-risk').textContent = `${(riskPct * 100).toFixed(1)}%`;
+            document.getElementById('sb-risk').textContent = `60%`;
             document.getElementById('sb-capital').textContent = `$${(info.initial_capital || initCap).toLocaleString()}`;
         }
 
