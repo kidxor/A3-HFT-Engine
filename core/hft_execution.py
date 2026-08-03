@@ -74,8 +74,8 @@ class HFTExecutionEngine:
         self.last_trade_close_time: float = -999_999.0
         self.trade_cooldown_seconds: float = trade_cooldown_seconds
 
-        self.trailing_stop_pct: float = 0.003
-        self.trailing_stop_activation_pct: float = 0.5
+        self.trailing_stop_pct: float = 0.04          # 4% trailing — only activates deep in-profit
+        self.trailing_stop_activation_pct: float = 0.75  # Activates at 75% of TP distance
 
         self.on_trade_open:  Optional[Callable[[HFTPosition], bool]] = None
         self.on_trade_close: Optional[Callable[[HFTPosition], None]] = None
@@ -128,13 +128,13 @@ class HFTExecutionEngine:
                 unrealized_pct  = (pos.entry_price - current_tick_ask) / pos.entry_price if pos.entry_price > 0 else 0
                 tp_distance_pct = (pos.entry_price - pos.tp_price) / pos.entry_price if pos.entry_price > 0 else 0.01
 
-            # Breakeven stop at 50% of TP distance
+            # Breakeven stop: only activates when >= 90% of TP distance is covered
             if unrealized_pct > 0 and tp_distance_pct > 0:
-                if unrealized_pct >= tp_distance_pct * self.trailing_stop_activation_pct:
+                if unrealized_pct >= tp_distance_pct * 0.90:
                     if pos.side == "BUY" and pos.sl_price < pos.entry_price:
-                        pos.sl_price = pos.entry_price + (pos.entry_price * 0.0002)
+                        pos.sl_price = pos.entry_price + (pos.entry_price * 0.001)
                     elif pos.side == "SELL" and pos.sl_price > pos.entry_price:
-                        pos.sl_price = pos.entry_price - (pos.entry_price * 0.0002)
+                        pos.sl_price = pos.entry_price - (pos.entry_price * 0.001)
 
             # Trailing stop
             if unrealized_pct >= self.trailing_stop_pct:

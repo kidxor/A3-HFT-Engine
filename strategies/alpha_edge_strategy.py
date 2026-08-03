@@ -158,13 +158,18 @@ class AlphaEdgeStrategy:
             "close":     close,
         }
 
-        # Trade allocation (60% of sub-portfolio capital per position)
-        trade_allocation_usd = current_balance * 0.60
+        # Trade allocation (80% of sub-portfolio capital per position)
+        trade_allocation_usd = current_balance * 0.80
         position_size = round(trade_allocation_usd / close, 4) if close > 0 else 0.0
 
-        # Risk Parameters (1.5% SL, 3.8% TP -> Net R:R 2.12:1 after 0.2% fees)
-        sl_pct = 0.015
-        tp_pct = 0.038
+        # ATR-based TP/SL — sized to actual market volatility so TP is reachable
+        # SL = 1.2x ATR, TP = 3.0x ATR → R:R = 2.5:1 (covers 0.2% fees with margin)
+        sl_dist = atr * 1.2
+        tp_dist = atr * 3.0
+        # Minimum net profit per trade must exceed fees × 4
+        min_profit_usd = (trade_allocation_usd * 0.002) * 4   # 4x fee cover
+        if (position_size * tp_dist) < min_profit_usd:
+            tp_dist = min_profit_usd / position_size if position_size > 0 else tp_dist
 
         # ── LONG ──────────────────────────────────────────────────────
         is_uptrend     = ema_f > ema_s and close > ema_t
@@ -175,19 +180,19 @@ class AlphaEdgeStrategy:
         rsi_long = 35 <= rsi <= 60
 
         if is_uptrend and pullback_long and rsi_long:
-            sl_price = round(close * (1 - sl_pct), 4)
-            tp_price = round(close * (1 + tp_pct), 4)
+            sl_price = round(close - sl_dist, 4)
+            tp_price = round(close + tp_dist, 4)
             self._last_trade_idx = current_idx
 
             return {
                 "signal":          "BUY",
                 "confidence":      round(min(1.0, adx / 40.0), 2),
-                "reason":          f"AlphaEdge LONG: Pullback ({ema_s:.2f}≤{close:.2f}≤{ema_f:.2f}) | ADX {adx:.1f} | RSI {rsi:.1f}",
+                "reason":          f"AlphaEdge LONG: Pullback ({ema_s:.2f}≤{close:.2f}≤{ema_f:.2f}) | ADX {adx:.1f} | RSI {rsi:.1f} | ATR {atr:.4f}",
                 "entry_price":     close,
                 "sl_price":        sl_price,
                 "tp_price":        tp_price,
                 "position_size":   position_size,
-                "risk_amount_usd": round(trade_allocation_usd * sl_pct, 2),
+                "risk_amount_usd": round(position_size * sl_dist, 2),
                 "indicators":      indicators,
             }
 
@@ -200,19 +205,19 @@ class AlphaEdgeStrategy:
         rsi_short = 40 <= rsi <= 65
 
         if is_downtrend and pullback_short and rsi_short:
-            sl_price = round(close * (1 + sl_pct), 4)
-            tp_price = round(close * (1 - tp_pct), 4)
+            sl_price = round(close + sl_dist, 4)
+            tp_price = round(close - tp_dist, 4)
             self._last_trade_idx = current_idx
 
             return {
                 "signal":          "SELL",
                 "confidence":      round(min(1.0, adx / 40.0), 2),
-                "reason":          f"AlphaEdge SHORT: Rally ({ema_f:.2f}≥{close:.2f}≥{ema_s:.2f}) | ADX {adx:.1f} | RSI {rsi:.1f}",
+                "reason":          f"AlphaEdge SHORT: Rally ({ema_f:.2f}≥{close:.2f}≥{ema_s:.2f}) | ADX {adx:.1f} | RSI {rsi:.1f} | ATR {atr:.4f}",
                 "entry_price":     close,
                 "sl_price":        sl_price,
                 "tp_price":        tp_price,
                 "position_size":   position_size,
-                "risk_amount_usd": round(trade_allocation_usd * sl_pct, 2),
+                "risk_amount_usd": round(position_size * sl_dist, 2),
                 "indicators":      indicators,
             }
 
