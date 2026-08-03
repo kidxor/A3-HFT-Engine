@@ -162,14 +162,16 @@ class AlphaEdgeStrategy:
         trade_allocation_usd = current_balance * 0.80
         position_size = round(trade_allocation_usd / close, 4) if close > 0 else 0.0
 
-        # ATR-based TP/SL — sized to actual market volatility so TP is reachable
-        # SL = 1.2x ATR, TP = 3.0x ATR → R:R = 2.5:1 (covers 0.2% fees with margin)
-        sl_dist = atr * 1.2
-        tp_dist = atr * 3.0
-        # Minimum net profit per trade must exceed fees × 4
-        min_profit_usd = (trade_allocation_usd * 0.002) * 4   # 4x fee cover
-        if (position_size * tp_dist) < min_profit_usd:
-            tp_dist = min_profit_usd / position_size if position_size > 0 else tp_dist
+        # ATR-based TP/SL — uses class params set in tick_simulator
+        # Default: SL = 1.5x 5m ATR, TP = 3.5x 5m ATR → R:R 2.33:1
+        # Net of 0.20% fees: TP_net ≈ +2.9% of ATR%, SL_net ≈ -1.7% → Net R:R 1.7:1
+        sl_dist = atr * self.atr_sl_mult
+        tp_dist = atr * self.atr_tp_mult
+        # Minimum net profit floor: TP must exceed 5× the round-trip fee
+        fee_pct       = 0.002   # 0.2% round-trip
+        min_tp_usd    = (trade_allocation_usd * fee_pct) * 5
+        if (position_size * tp_dist) < min_tp_usd and position_size > 0:
+            tp_dist = min_tp_usd / position_size
 
         # ── LONG ──────────────────────────────────────────────────────
         is_uptrend     = ema_f > ema_s and close > ema_t

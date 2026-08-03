@@ -16,7 +16,7 @@ from core.event_logger import event_logger
 
 logger = logging.getLogger("HFT_Simulator")
 
-CANDLE_INTERVAL_MS = 60_000
+CANDLE_INTERVAL_MS = 300_000    # 5-minute candles: ATR ~5-10x bigger than 1m → fees become negligible
 WARMUP_CANDLES     = 230
 
 # Pre-defined column order — keeps DataFrame construction consistent
@@ -44,9 +44,13 @@ class SubSecondTickSimulator:
         if strategy_name == "alpha_edge":
             self.strategy = strategy_class(
                 ema_fast=20, ema_slow=50, ema_trend=200,
-                adx_min=20.0, atr_sl_mult=1.5, atr_tp_mult=2.5,
-                risk_per_trade_pct=0.01, pullback_tolerance=0.003,
-                cooldown_candles=3, atr_min_mult=0.002,
+                adx_min=25.0,            # Only strong trends (was 20)
+                atr_sl_mult=1.5,         # SL = 1.5x 5m ATR
+                atr_tp_mult=3.5,         # TP = 3.5x 5m ATR → R:R 2.33:1
+                risk_per_trade_pct=0.01,
+                pullback_tolerance=0.005, # 0.5% for 5m bars
+                cooldown_candles=3,
+                atr_min_mult=0.004,       # Min ATR = 0.4% of price (filters low-vol)
             )
         else:
             self.strategy = strategy_class()
@@ -93,9 +97,9 @@ class SubSecondTickSimulator:
         if strategy_name == "alpha_edge":
             params = {
                 "ema_fast": 20, "ema_slow": 50, "ema_trend": 200,
-                "adx_min": 10.0, "atr_sl_mult": 1.2, "atr_tp_mult": 2.5,
-                "risk_per_trade_pct": 0.01, "pullback_tolerance": 0.01,
-                "cooldown_candles": 1, "atr_min_mult": 0.0001,
+                "adx_min": 25.0, "atr_sl_mult": 1.5, "atr_tp_mult": 3.5,
+                "risk_per_trade_pct": 0.01, "pullback_tolerance": 0.005,
+                "cooldown_candles": 3, "atr_min_mult": 0.004,
             }
             params.update(kwargs)
             self.strategy = strategy_class(**params)
