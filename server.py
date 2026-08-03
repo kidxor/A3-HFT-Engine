@@ -499,11 +499,23 @@ def run_async_portfolio():
         ENGINE_START_TIME = time.time()
     ENGINE_MANAGER.set_engine_state(auto_start)
 
-    tasks = []
-    for sim in ENGINE_MANAGER.single_runner.simulators.values():
-        tasks.append(sim.ws_client.start_live_stream(interval_seconds=0.3))
+    async def _portfolio_stream_manager():
+        active_tasks = {}
+        while True:
+            try:
+                if ENGINE_MANAGER and ENGINE_MANAGER.single_runner:
+                    current_sims = list(ENGINE_MANAGER.single_runner.simulators.values())
+                    for sim in current_sims:
+                        if sim.symbol not in active_tasks or active_tasks[sim.symbol].done():
+                            logger.info(f"🌐 Data stream loop active for {sim.symbol}")
+                            active_tasks[sim.symbol] = asyncio.create_task(
+                                sim.ws_client.start_live_stream(interval_seconds=0.3)
+                            )
+            except Exception as err:
+                logger.error(f"Error in portfolio stream manager: {err}")
+            await asyncio.sleep(0.5)
 
-    loop.run_until_complete(asyncio.gather(*tasks))
+    loop.run_until_complete(_portfolio_stream_manager())
 
 
 class ReusableThreadingHTTPServer(ThreadingHTTPServer):

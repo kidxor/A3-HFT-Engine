@@ -95,8 +95,9 @@ class MultiAssetPortfolioRunner:
 
         def on_trade_open(pos):
             trade_cost = pos.entry_price * pos.quantity
+            total_portfolio_equity = sum(s.execution_engine.capital for s in runner.simulators.values())
             allowed, reason = runner.risk_guard.check_trade_allowed(
-                sim.execution_engine.capital, trade_cost
+                current_balance=total_portfolio_equity, requested_trade_cost=trade_cost
             )
             if not allowed:
                 logger.warning(
@@ -124,8 +125,9 @@ class MultiAssetPortfolioRunner:
             return True
 
         def on_trade_close(pos):
+            total_portfolio_equity = sum(s.execution_engine.capital for s in runner.simulators.values())
             runner.risk_guard.record_trade_result(
-                pos.pnl, current_balance=sim.execution_engine.capital
+                pos.pnl, current_balance=total_portfolio_equity
             )
             runner.db_manager.save_trade(
                 symbol=pos.symbol,
@@ -227,6 +229,11 @@ class MultiAssetPortfolioRunner:
             self.simulators[sym].ws_client.stop()
             del self.simulators[sym]
 
+        preset_kwargs = {
+            k: v for k, v in preset.items()
+            if k in ("adx_min", "atr_min_mult", "pullback_tolerance", "atr_sl_mult", "atr_tp_mult", "risk_per_trade_pct")
+        }
+
         # Add or update simulators
         for sym in new_syms:
             if sym not in self.simulators:
@@ -239,12 +246,17 @@ class MultiAssetPortfolioRunner:
                 self.simulators[sym] = sim
             else:
                 self.simulators[sym].execution_engine.capital = alloc_per_sym
-                self.simulators[sym].set_strategy(strat_name)
+            self.simulators[sym].set_strategy(strat_name, **preset_kwargs)
 
+        total_active_capital = sum(s.execution_engine.capital for s in self.simulators.values())
         self.risk_guard.max_daily_drawdown_pct  = max_dd
-        self.risk_guard.peak_equity             = capital
-        self.risk_guard.starting_daily_capital  = capital
-        self.risk_guard.initial_capital         = capital
+        self.risk_guard.peak_equity             = total_active_capital
+        self.risk_guard.starting_daily_capital  = total_active_capital
+        self.risk_guard.initial_capital         = total_active_capital
+        self.risk_guard.circuit_breaker_triggered = False
+        self.risk_guard.circuit_breaker_reason  = ""
+        self.risk_guard.consecutive_losses      = 0
+        self.risk_guard.paused_until_timestamp  = 0.0
 
         # Invalidate PnL cache after preset change
         self._closed_pnls_trades = -1

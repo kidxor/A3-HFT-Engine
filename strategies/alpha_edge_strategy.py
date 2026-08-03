@@ -32,17 +32,17 @@ class AlphaEdgeStrategy:
         ema_slow: int = 50,
         ema_trend: int = 200,
         adx_period: int = 14,
-        adx_min: float = 22.0,
+        adx_min: float = 10.0,
         rsi_period: int = 14,
         atr_period: int = 14,
         atr_sl_mult: float = 1.2,
         atr_tp_mult: float = 2.5,
         risk_per_trade_pct: float = 0.01,
-        pullback_tolerance: float = 0.005,
+        pullback_tolerance: float = 0.01,
         bb_period: int = 20,
         bb_std: float = 2.0,
-        cooldown_candles: int = 2,
-        atr_min_mult: float = 0.001,
+        cooldown_candles: int = 1,
+        atr_min_mult: float = 0.0001,
     ):
         self.ema_fast           = ema_fast
         self.ema_slow           = ema_slow

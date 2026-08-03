@@ -6,12 +6,12 @@ from typing import Dict, Any, Optional
 class OrderbookScalperStrategy:
     def __init__(
         self,
-        vir_threshold: float = 2.0,
-        target_ticks: int = 12,
-        stop_ticks: int = 6,
+        vir_threshold: float = 1.25,
+        target_ticks: int = 4,
+        stop_ticks: int = 2,
         tick_size: float = 0.01,
         risk_per_trade_pct: float = 0.005,
-        cooldown_ticks: int = 5,
+        cooldown_ticks: int = 2,
     ):
         self.vir_threshold = vir_threshold
         self.target_ticks = target_ticks
@@ -59,7 +59,7 @@ class OrderbookScalperStrategy:
         }
 
         # BUY: strong bid pressure
-        if vir >= self.vir_threshold and ofi > 0:
+        if vir >= self.vir_threshold and ofi >= 0:
             sl_price = round(best_bid - (self.stop_ticks * tick), 4)
             tp_price = round(best_bid + (self.target_ticks * tick), 4)
             risk_per_unit = best_bid - sl_price
@@ -67,8 +67,8 @@ class OrderbookScalperStrategy:
             position_size = round(risk_amount / max(risk_per_unit, tick), 4) if risk_per_unit > 0 else 0.0
             return {
                 "signal": "BUY",
-                "confidence": round(min(1.0, (vir - 1.0) / 3.0), 2),
-                "reason": f"Orderbook LONG: VIR {vir:.1f}x | OFI {ofi:+.1f} | Spread ${spread:.2f}",
+                "confidence": round(min(1.0, (vir - 1.0) / 2.0), 2),
+                "reason": f"Orderbook LONG: VIR {vir:.2f}x | OFI {ofi:+.1f} | Spread ${spread:.2f}",
                 "entry_price": best_bid,
                 "sl_price": sl_price,
                 "tp_price": tp_price,
@@ -78,7 +78,7 @@ class OrderbookScalperStrategy:
             }
 
         # SELL: strong ask pressure
-        if vir <= (1.0 / self.vir_threshold) and ofi < 0:
+        if vir <= (1.0 / self.vir_threshold) and ofi <= 0:
             sl_price = round(best_ask + (self.stop_ticks * tick), 4)
             tp_price = round(best_ask - (self.target_ticks * tick), 4)
             risk_per_unit = sl_price - best_ask

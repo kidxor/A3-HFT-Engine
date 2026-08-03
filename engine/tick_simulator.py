@@ -17,7 +17,7 @@ from core.event_logger import event_logger
 logger = logging.getLogger("HFT_Simulator")
 
 CANDLE_INTERVAL_MS = 60_000
-WARMUP_CANDLES     = 215
+WARMUP_CANDLES     = 230
 
 # Pre-defined column order — keeps DataFrame construction consistent
 _CANDLE_COLS = ["timestamp", "open", "high", "low", "close", "volume"]
@@ -85,20 +85,22 @@ class SubSecondTickSimulator:
     # Setup
     # ------------------------------------------------------------------
 
-    def set_strategy(self, strategy_name: str):
+    def set_strategy(self, strategy_name: str, **kwargs):
         self.strategy_name = strategy_name
         strategy_class = STRATEGY_REGISTRY.get(
             strategy_name, STRATEGY_REGISTRY[DEFAULT_STRATEGY]
         )
         if strategy_name == "alpha_edge":
-            self.strategy = strategy_class(
-                ema_fast=20, ema_slow=50, ema_trend=200,
-                adx_min=20.0, atr_sl_mult=1.5, atr_tp_mult=2.5,
-                risk_per_trade_pct=0.01, pullback_tolerance=0.003,
-                cooldown_candles=3, atr_min_mult=0.002,
-            )
+            params = {
+                "ema_fast": 20, "ema_slow": 50, "ema_trend": 200,
+                "adx_min": 10.0, "atr_sl_mult": 1.2, "atr_tp_mult": 2.5,
+                "risk_per_trade_pct": 0.01, "pullback_tolerance": 0.01,
+                "cooldown_candles": 1, "atr_min_mult": 0.0001,
+            }
+            params.update(kwargs)
+            self.strategy = strategy_class(**params)
         else:
-            self.strategy = strategy_class()
+            self.strategy = strategy_class(**kwargs)
         logger.info(f"🔄 Strategy updated to '{strategy_name}' ({self.strategy.__class__.__name__}) for {self.symbol}")
 
     def _attach_risk_hooks(self):
@@ -200,7 +202,7 @@ class SubSecondTickSimulator:
         self.latest_metrics = metrics
 
         candle_closed = self._update_candle(tick)
-        if not candle_closed:
+        if not candle_closed and (self.tick_count % 5 != 0) and self.strategy_name != "orderbook_scalper":
             return
 
         # Build DataFrame efficiently using pre-allocated numpy array

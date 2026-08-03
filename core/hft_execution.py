@@ -49,7 +49,7 @@ class HFTExecutionEngine:
         initial_capital: float = 50.0,
         maker_fee: float = 0.001,
         slippage_pct: float = 0.0005,
-        trade_cooldown_seconds: float = 10.0,   # now configurable
+        trade_cooldown_seconds: float = 1.0,   # 1s for fast HFT scalping
     ):
         self.capital    = initial_capital
         self.maker_fee  = maker_fee
