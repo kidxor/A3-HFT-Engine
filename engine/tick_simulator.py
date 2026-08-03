@@ -279,7 +279,7 @@ class SubSecondTickSimulator:
                 stop_distance    = max(stop_distance, price * 0.001)
                 quantity         = target_risk_usd / stop_distance
 
-            max_qty  = (self.execution_engine.capital * 0.20) / max(1.0, price)
+            max_qty  = (self.execution_engine.capital * 0.70) / max(1.0, price)
             quantity = min(quantity, max_qty)
             quantity = max(0.0001, round(quantity, 4))
 
