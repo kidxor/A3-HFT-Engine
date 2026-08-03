@@ -1298,13 +1298,13 @@
         <div class="kpi-row">
             <div class="kpi-card" data-tt="capital">
                 <div class="kpi-label">Capital Total</div>
-                <div class="kpi-value" id="kpi-capital">$1,000.00</div>
-                <div class="kpi-meta" id="kpi-capital-sub">Riesgo 3.5% · $35/trade</div>
+                <div class="kpi-value" id="kpi-capital">$3,000.00</div>
+                <div class="kpi-meta" id="kpi-capital-sub">Riesgo 1.0% · $30/trade</div>
             </div>
             <div class="kpi-card" data-tt="pnl">
                 <div class="kpi-label">PnL Neto</div>
                 <div class="kpi-value kpi-positive" id="kpi-pnl">+$0.0000</div>
-                <div class="kpi-meta" id="kpi-pnl-sub">Meta mensual: +$500</div>
+                <div class="kpi-meta" id="kpi-pnl-sub">Meta sesión: +$300</div>
             </div>
             <div class="kpi-card" data-tt="winrate">
                 <div class="kpi-label">Win Rate</div>
@@ -1314,7 +1314,7 @@
             <div class="kpi-card" data-tt="drawdown">
                 <div class="kpi-label">Drawdown Actual</div>
                 <div class="kpi-value" id="kpi-dd">0.00%</div>
-                <div class="kpi-meta" id="kpi-dd-sub">Límite: 15.0%</div>
+                <div class="kpi-meta" id="kpi-dd-sub">Límite: 5.0%</div>
             </div>
             <div class="kpi-card" data-tt="pnl" style="border-left:3px solid rgba(167,139,250,0.4);">
                 <div class="kpi-label">Profit Factor</div>
@@ -2021,7 +2021,7 @@
         const bRate  = document.getElementById('banner-tick-rate');
         const bSyms  = document.getElementById('banner-symbols-list');
         const bBtn   = document.getElementById('banner-toggle-btn');
-        const activeSyms = (portfolio.symbols || ['SOL-USDT']).join(' · ');
+        const bannerSymsStr = (portfolio.symbols || ['SOL-USDT']).join(' · ');
 
         if (banner) {
             if (isRunning) {
@@ -2029,14 +2029,14 @@
                 if (bTitle) bTitle.innerHTML = `🟢 MOTOR OPERANDO EN VIVO — TRADING HFT ACTIVO`;
                 if (bSub)   bSub.textContent = `Escaneando liquidez y volumen institucional en sub-segundos a través de KuCoin WebSocket | Frecuencia: 3.3 Ticks/seg`;
                 if (bRate)  bRate.textContent = `⚡ 3.3 Ticks/seg (${(data.total_ticks || 0).toLocaleString()} Ticks)`;
-                if (bSyms)  bSyms.textContent = activeSyms;
+                if (bSyms)  bSyms.textContent = bannerSymsStr;
                 if (bBtn)   { bBtn.textContent = '⏸ Pausar Motor'; bBtn.className = 'btn btn-sm btn-danger'; }
             } else {
                 banner.className = 'engine-live-banner banner-stopped';
                 if (bTitle) bTitle.innerHTML = `⏸️ MOTOR EN PAUSA — TRADING DETENIDO`;
                 if (bSub)   bSub.textContent = `Haz clic en 'Iniciar Operación' para activar el escaneo de mercado y la ejecución de órdenes`;
                 if (bRate)  bRate.textContent = `⏸ 0 Ticks/seg`;
-                if (bSyms)  bSyms.textContent = activeSyms;
+                if (bSyms)  bSyms.textContent = bannerSymsStr;
                 if (bBtn)   { bBtn.textContent = '▶ Iniciar Operación'; bBtn.className = 'btn btn-sm btn-success'; }
             }
         }
@@ -2080,14 +2080,16 @@
         const modeBadge = document.getElementById('mode-badge');
         const modeIcon  = document.getElementById('mode-icon');
         const modeText  = document.getElementById('mode-text');
-        if (isLive) {
-            modeBadge.className = 'mode-badge mode-live';
-            modeIcon.textContent = '🔴';
-            modeText.textContent = 'LIVE REAL';
-        } else {
-            modeBadge.className = 'mode-badge mode-training';
-            modeIcon.textContent = '🔬';
-            modeText.textContent = 'TRAINING';
+        if (modeBadge) {
+            if (isLive) {
+                modeBadge.className = 'mode-badge mode-live';
+                if (modeIcon) modeIcon.textContent = '🔴';
+                if (modeText) modeText.textContent = 'LIVE REAL';
+            } else {
+                modeBadge.className = 'mode-badge mode-training';
+                if (modeIcon) modeIcon.textContent = '🔬';
+                if (modeText) modeText.textContent = 'TRAINING';
+            }
         }
 
         // Ticker — render/update live prices for all coins from MarketDataProxy or perSym
@@ -2370,6 +2372,23 @@
                         sel.value = activeSyms[0];
                     }
                 }
+            }
+        }
+
+        // Update Chart Header live price tag
+        const chartLiveTag = document.getElementById('chart-live-tag');
+        if (chartLiveTag) {
+            let chartPrice = 0;
+            if (allTickers[selectedChartSymbol] && allTickers[selectedChartSymbol].mid_price) {
+                chartPrice = allTickers[selectedChartSymbol].mid_price;
+            } else if (perSym[selectedChartSymbol] && perSym[selectedChartSymbol].mid_price) {
+                chartPrice = perSym[selectedChartSymbol].mid_price;
+            }
+            if (chartPrice > 0) {
+                const pFmt = chartPrice > 10 ? `$${chartPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` : `$${chartPrice.toFixed(4)}`;
+                chartLiveTag.innerHTML = `● ${selectedChartSymbol}: <b style="color:#10b981;font-weight:700;">${pFmt} USD</b>`;
+            } else {
+                chartLiveTag.innerHTML = `● Live`;
             }
         }
 
