@@ -366,6 +366,26 @@ class HFTRequestHandler(BaseHTTPRequestHandler):
             event_logger.log("SYSTEM", "🛡️ Risk Guard RESETEADO", level="SUCCESS")
             self._send_json({"status": "risk_reset"})
 
+        elif path_clean == "/api/cleardb":
+            # Physically wipe all historical trades from SQLite
+            import sqlite3 as _sq
+            _db_path = os.path.join(os.path.dirname(__file__), "data", "trades.db")
+            try:
+                _conn = _sq.connect(_db_path)
+                _conn.execute("DELETE FROM trades")
+                _conn.commit()
+                _conn.close()
+                deleted_ok = True
+            except Exception as _e:
+                deleted_ok = False
+                logger.error(f"cleardb error: {_e}")
+            # Also reset in-memory session counters
+            if ENGINE_MANAGER:
+                ENGINE_MANAGER.reset_engine()
+                ENGINE_MANAGER.set_engine_state(True)
+            event_logger.log("SYSTEM", "🗑️ Base de datos LIMPIADA — historial borrado", level="SUCCESS")
+            self._send_json({"status": "cleared", "db_wiped": deleted_ok})
+
         elif path_clean == "/api/config":
             self._send_json(_get_engine_config())
 
