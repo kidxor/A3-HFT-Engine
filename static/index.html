@@ -1181,20 +1181,16 @@
     </div>
 
     <div class="topbar-right">
-        <div class="activity-chip" id="activity-chip" style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;" data-tt="activity-chip">
+        <div class="activity-chip" id="activity-chip" style="display:flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;" data-tt="activity-chip">
             <span class="pulse-dot pulse-on" style="width:7px;height:7px;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
             <span id="activity-rate" style="color:#10b981;font-weight:600;">⚡ 3.3 t/s</span>
             <span style="color:var(--text-dim);">|</span>
             <span id="activity-ticks" style="color:var(--text-secondary);">0 Ticks</span>
         </div>
-        <div class="mode-badge mode-training" id="mode-badge" data-tt="mode-badge">
-            <span id="mode-icon">🔬</span>
-            <span id="mode-text">TRAINING</span>
-        </div>
         <div class="uptime-chip mono" id="uptime-chip" data-tt="uptime-chip">00:00:00</div>
         <div class="status-pill status-on" id="status-pill" data-tt="status-pill">
             <div class="pulse-dot pulse-on" id="pulse-dot"></div>
-            <span id="status-text">LIVE</span>
+            <span id="status-text">🟢 OPERANDO EN VIVO</span>
         </div>
     </div>
 </header>
@@ -1204,27 +1200,24 @@
 
     <!-- ════════════════ SIDEBAR -->
     <aside class="sidebar">
-        <div class="sidebar-section-label">Motor</div>
+        <div class="sidebar-section-label">Control del Motor</div>
 
         <div class="action-group">
-            <button class="btn btn-success btn-full" onclick="startBot()" id="btn-start" data-tt="btn-start">
+            <button class="btn btn-primary btn-full" onclick="toggleEngineFromBanner()" id="btn-master-toggle" data-tt="btn-master-toggle" style="font-weight:700;">
                 ▶ Iniciar Operación
             </button>
-            <button class="btn btn-danger btn-full" onclick="stopBot()" id="btn-stop" data-tt="btn-stop">
-                ⏸ Pausar Operación
-            </button>
-            <button class="btn btn-ghost btn-full" onclick="resetBot()" id="btn-restart" data-tt="btn-restart">
+            <button class="btn btn-ghost btn-full" onclick="resetBot()" id="btn-restart" data-tt="btn-restart" style="margin-top:2px;">
                 ↺ Reiniciar Engine
             </button>
-            <button class="btn btn-ghost btn-full" onclick="openWizard(1)" id="btn-wizard" style="margin-top:4px;font-size:12px;color:var(--blue);" data-tt="sidebar-profile">
+            <button class="btn btn-ghost btn-full" onclick="openWizard(1)" id="btn-wizard" style="margin-top:2px;font-size:12px;color:var(--blue);" data-tt="sidebar-profile">
                 ⚙ Asistente / Wizard
             </button>
         </div>
 
         <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Configuración Activa</div>
+        <div class="sidebar-section-label">Configuración</div>
 
-        <button class="sidebar-btn active" onclick="openProfilesModal()" id="btn-profiles" data-tt="sbtn-profiles" style="background:rgba(59,130,246,0.1);color:#60a5fa;">
+        <button class="sidebar-btn active" onclick="openProfilesModal()" id="btn-profiles" data-tt="sbtn-profiles" style="background:rgba(59,130,246,0.12);color:#60a5fa;">
             <span class="icon">👤</span>
             <span>Perfiles & Estrategias</span>
         </button>
@@ -1232,18 +1225,18 @@
             <span class="icon">🌐</span>
             <span>Arquitectura & API</span>
         </button>
-        <button class="sidebar-btn" onclick="openWizard(1)" data-tt="sidebar-profile">
+        <button class="sidebar-btn" onclick="openSettings()" id="btn-settings" data-tt="btn-settings" style="margin-top:4px;">
             <span class="icon">⚙</span>
-            <span id="sidebar-profile">Perfil Agresivo</span>
-        </button>
-        <button class="sidebar-btn" onclick="toggleMode()" id="btn-mode" data-tt="btn-mode">
-            <span class="icon">🌐</span>
-            <span id="btn-mode-text">Datos Live KuCoin</span>
+            <span>Configuración Avanzada</span>
         </button>
 
         <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Herramientas</div>
+        <div class="sidebar-section-label">Mantenimiento</div>
 
+        <button class="sidebar-btn" onclick="resetRiskGuard()" id="btn-resetrisk" data-tt="btn-resetrisk">
+            <span class="icon">🛡</span>
+            <span>Reset Risk Guard</span>
+        </button>
         <button class="sidebar-btn" onclick="clearDatabaseUI()" data-tt="btn-cleardb">
             <span class="icon">🗑</span>
             <span>Limpiar Base de Datos</span>
@@ -1252,23 +1245,15 @@
             <span class="icon">🔇</span>
             <span>Alertas de Sonido</span>
         </button>
-        <button class="sidebar-btn" onclick="resetRiskGuard()" id="btn-resetrisk" data-tt="btn-resetrisk">
-            <span class="icon">🛡</span>
-            <span>Reset Risk Guard</span>
-        </button>
-        <button class="sidebar-btn" onclick="openSettings()" id="btn-settings" data-tt="btn-settings">
-            <span class="icon">⚙</span>
-            <span>Configuración Avanzada</span>
-        </button>
 
         <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Información</div>
+        <div class="sidebar-section-label">Información del Perfil</div>
         <div style="padding: 8px 16px;" data-tt="sidebar-info">
             <div style="font-size: 11px; color: var(--text-dim); line-height: 1.7;">
-                <div>Capital: <span class="mono" id="sb-capital" style="color:var(--text-secondary);">$1,000</span></div>
+                <div>Capital: <span class="mono" id="sb-capital" style="color:var(--text-secondary);">$3,000</span></div>
                 <div>Estrategia: <span class="mono" id="sb-strategy" style="color:var(--text-secondary);">alpha_edge</span></div>
-                <div>Riesgo/trade: <span class="mono" id="sb-risk" style="color:var(--text-secondary);">3.5%</span></div>
-                <div>DD Máx: <span class="mono" id="sb-maxdd" style="color:var(--text-secondary);">15%</span></div>
+                <div>Riesgo/trade: <span class="mono" id="sb-risk" style="color:var(--text-secondary);">1.0%</span></div>
+                <div>DD Máx: <span class="mono" id="sb-maxdd" style="color:var(--text-secondary);">5.0%</span></div>
             </div>
         </div>
     </aside>
@@ -2053,6 +2038,17 @@
                 if (bRate)  bRate.textContent = `⏸ 0 Ticks/seg`;
                 if (bSyms)  bSyms.textContent = activeSyms;
                 if (bBtn)   { bBtn.textContent = '▶ Iniciar Operación'; bBtn.className = 'btn btn-sm btn-success'; }
+            }
+        }
+
+        const masterBtn = document.getElementById('btn-master-toggle');
+        if (masterBtn) {
+            if (isRunning) {
+                masterBtn.textContent = '⏸ Pausar Operación';
+                masterBtn.className   = 'btn btn-danger btn-full';
+            } else {
+                masterBtn.textContent = '▶ Iniciar Operación';
+                masterBtn.className   = 'btn btn-success btn-full';
             }
         }
 
