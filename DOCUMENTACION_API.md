@@ -1,4 +1,4 @@
-# Manual y Documentación de la API — A3 HFT Engine v4.1
+# Manual y Documentación de la API — A3 HFT Engine v4.2
 
 Documentación oficial de la **API REST, Streaming SSE y Market Data Proxy (MDP)** del motor A3 HFT Engine.
 
@@ -231,6 +231,23 @@ curl -s http://localhost:8005/api/start
 
 ---
 
+### 4.2.1 Limpiar Base de Datos (Hard Reset)
+
+Limpia la base de datos histórica y todos los contadores de sesión (PNL, número de operaciones).
+
+- **Método**: `GET`
+- **Ruta**: `/api/cleardb`
+- **Ejemplo de Consulta**:
+```bash
+curl -s http://localhost:8005/api/cleardb
+```
+- **Respuesta**:
+```json
+{ "status": "cleared", "db_wiped": true }
+```
+
+---
+
 ### 4.3 Cambiar Preset de Estrategia
 
 - **Método**: `GET`
@@ -313,4 +330,4 @@ print("Símbolos monitoreados:", status_resp.json().get("symbols"))
 
 ---
 
-*A3 Core Systems — Documentación Oficial de la API v4.1*
+*A3 Core Systems — Documentación Oficial de la API v4.2*

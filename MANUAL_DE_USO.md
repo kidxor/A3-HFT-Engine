@@ -1,6 +1,6 @@
-# Manual de Uso Oficial — A3 AlphaEdge HFT Engine v4.1
+# Manual de Uso Oficial — A3 AlphaEdge HFT Engine v4.2
 
-Bienvenido al manual oficial del **Motor de Trading Cuantitativo de Alta Frecuencia, Servidor Proxy de Mercado Local y Gestión de Riesgo Enterprise (A3 AlphaEdge HFT Engine v4.1)**. 
+Bienvenido al manual oficial del **Motor de Trading Cuantitativo, Servidor Proxy de Mercado Local y Gestión de Riesgo Enterprise (A3 AlphaEdge Engine v4.2)**.
 
 Este sistema nativo para **Linux (Ubuntu)** ejecuta algoritmos de trading cuantitativo en tiempo real, soporta ejecución multiactivo simultánea (SOL, BTC, ETH, ADA, XRP, AVAX, DOT, LINK), simulación de datos sub-segundo con alimentación en vivo desde KuCoin L2 mediante un **Market Data Proxy (MDP)** desacoplado de baja latencia y control estricto de riesgo con Circuit Breaker.
 
@@ -8,15 +8,15 @@ Este sistema nativo para **Linux (Ubuntu)** ejecuta algoritmos de trading cuanti
 
 ## 1. Características Principales del Motor AlphaEdge v4.1
 
-| Característica | Bot Tradicional | A3 AlphaEdge HFT Engine v4.1 |
+| Característica | Bot Tradicional | A3 AlphaEdge HFT Engine v4.2 |
 | :--- | :--- | :--- |
-| **Frecuencia de Reacción** | Minutos / Horas | **Sub-segundo / Ticks microestructurales (0.1s - 0.3s)** |
+| **Frecuencia de Reacción** | Minutos / Horas | **Velas de 5 Minutos construidas con Ticks Sub-segundo** |
 | **Alimentación de Mercado** | Consultas directas N x Exchange | **Market Data Proxy (MDP) Local**: 1 consulta por símbolo cada 300ms compartida por todos los bots en RAM |
 | **Estrategia Principal** | Indicadores básicos / Simples | **AlphaEdge Trend-Pullback** (Confirmación cuádruple: EMA Stack + ADX + RSI + ATR Volatility Gate) |
 | **Estrategia Secundaria** | N/A | **Orderbook L2 Scalper** (Microestructura con Volume Imbalance Ratio y OFI Delta) |
 | **Warmup de Arranque** | Espera de 200+ min en frío | **Instantáneo** (Generación sintética de 215 velas de calentamiento para cálculo inmediato de EMA200) |
 | **Gestión de Riesgo** | Estática / Manual | **Risk Guard Circuit Breaker** (Límite por Drawdown diario, Peak Equity Drawdown y Cooldown por pérdidas consecutivas) |
-| **Estructura de Comisiones**| Sin comisiones simuladas | **Realista Exchange (KuCoin L2)**: Maker Fee (0.02%) + Slippage dinámico (0.01%) |
+| **Estructura de Comisiones**| Sin comisiones simuladas | **Realista Exchange (KuCoin L2)**: Maker/Taker Fee (0.10% c/u = 0.20% round-trip) + Slippage dinámico |
 | **Persistencia & Índices** | Memoria volátil / Logs | **Base de Datos SQLite en modo WAL + 4 Índices** (`id DESC`, `symbol+strategy`, `pnl`, `profile_id`) con caché de 64MB |
 | **Streaming & UI** | Consola plana / Refresh fijo | **Dashboard HUD Web en Puerto 8005** con SSE (Server-Sent Events) a 200ms y gráfico interactivo |
 | **Modos de Operación** | Estático | **Presets preconfigurados** ($1k, $2.5k, Multi-Asset) + Wizard para crear bots personalizados |
@@ -136,11 +136,11 @@ Nuestra propia API permite consumir cotizaciones y libros de órdenes en tiempo 
   2. **Corredor de Pullback Acotado + Filtro de Soporte (EMA 50)**:
      - LONG: El precio debe ubicarse en la banda del corredor alrededor de `EMA(20)` y mantenerse sobre el soporte de `EMA(50)` (`Close >= EMA(50)`).
      - SHORT: El precio debe mantenerse debajo de la resistencia de `EMA(50)` (`Close <= EMA(50)`).
-  3. **Filtro de Fuerza de Tendencia (ADX)**: `ADX > 20.0`.
+  3. **Filtro de Fuerza de Tendencia (ADX)**: `ADX > 25.0` (Requiere tendencias fuertes consolidadas).
   4. **Filtro de Momentum Neutral (RSI)**: `35 <= RSI <= 60` para compras.
-  5. **Puerta de Volatilidad (ATR Gate)**: Exige que el `ATR` sea superior al umbral mínimo para cubrir fees.
-  6. **Cooldown de Velas**: Pausa de 3 velas tras abrir un trade para evitar reentradas continuas.
-- **Riesgo / Recompensa**: **1 : 1.67** (Take Profit = 2.5x ATR | Stop Loss = 1.5x ATR).
+  5. **Puerta de Volatilidad (ATR Gate)**: Exige que el `ATR` sea superior a un umbral mínimo (`0.4%` del precio actual) para garantizar que el movimiento del mercado puede cubrir holgadamente las comisiones (`0.20%` round-trip).
+  6. **Cooldown de Velas**: Pausa de 3 velas (15 minutos) tras abrir un trade para evitar reentradas continuas en el mismo nivel.
+- **Riesgo / Recompensa Dinámico por Volatilidad**: **1 : 2.33** (Take Profit = 3.5x ATR 5m | Stop Loss = 1.5x ATR 5m). R:R neto efectivo descontando comisiones: ~1.7:1.
 
 ### 5.2 Orderbook L2 Scalper (`OrderbookScalperStrategy`)
 - **Filosofía**: Estrategia de microestructura que evalúa la presión de la punta de compra vs venta en el libro de órdenes Nivel 2.
@@ -188,7 +188,7 @@ El módulo `RiskGuard` vigila cada trade en tiempo real antes y después de su e
 | :--- | :--- | :--- |
 | **Stream** | `GET /api/stream` | Stream SSE de datos en vivo (200ms) |
 | **Control** | `GET /api/start` / `stop` / `restart` | Inicia, detiene o reinicia la ejecución |
-| **Reset** | `GET /api/clear_db` | Limpieza de la base de datos histórica |
+| **Reset DB** | `GET /api/cleardb` | Limpieza física de la tabla de trades y contadores a cero |
 | **Risk** | `GET /api/reset_risk` | Reinicio manual del Circuit Breaker |
 | **Modo** | `GET /api/mode?live=true` | Cambia entre modo LIVE (Proxy) y DEMO |
 | **Config** | `POST /api/config` / `/api/configure_bots` | Configuración dinámica de bots y parámetros |
@@ -224,4 +224,4 @@ El módulo `RiskGuard` vigila cada trade en tiempo real antes y después de su e
 
 ---
 
-*A3 Core Systems — AlphaEdge HFT Engine v4.1*
+*A3 Core Systems — AlphaEdge HFT Engine v4.2*
