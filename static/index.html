@@ -80,6 +80,57 @@
         @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
         @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
         @keyframes pulseGlow { 0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0)} 50%{box-shadow:0 0 16px 3px rgba(59,130,246,0.2)} }
+        @keyframes radarPing {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            50% { transform: scale(1.6); opacity: 0.3; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+
+        /* ─── LIVE ENGINE STATUS BANNER ─────────── */
+        .engine-live-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            position: relative;
+            overflow: hidden;
+        }
+        .engine-live-banner.banner-running {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(15, 23, 42, 0.88) 60%, rgba(59, 130, 246, 0.14) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .engine-live-banner.banner-stopped {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.14) 0%, rgba(15, 23, 42, 0.88) 60%, rgba(245, 158, 11, 0.1) 100%);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            box-shadow: 0 8px 32px rgba(239, 68, 68, 0.14);
+        }
+        .banner-left { display: flex; align-items: center; gap: 16px; }
+        .radar-pulse {
+            position: relative;
+            width: 22px; height: 22px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .radar-dot { width: 10px; height: 10px; border-radius: 50%; z-index: 2; }
+        .banner-running .radar-dot { background: #10b981; box-shadow: 0 0 14px #10b981; }
+        .banner-stopped .radar-dot { background: #ef4444; box-shadow: 0 0 14px #ef4444; }
+        .radar-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: 1; }
+        .banner-running .radar-ring { border: 2px solid #10b981; animation: radarPing 1.8s cubic-bezier(0, 0.2, 0.8, 1) infinite; }
+        .banner-stopped .radar-ring { border: 2px solid #ef4444; opacity: 0.2; }
+        .banner-title { font-size: 14px; font-weight: 800; letter-spacing: -0.2px; display: flex; align-items: center; gap: 8px; }
+        .banner-running .banner-title { color: #34d399; }
+        .banner-stopped .banner-title { color: #f87171; }
+        .banner-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; font-weight: 500; }
+        .banner-right { display: flex; align-items: center; gap: 24px; }
+        .banner-stat { display: flex; flex-direction: column; align-items: flex-end; }
+        .stat-label { font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #64748b; }
+        .stat-value { font-size: 13px; font-weight: 700; color: #f1f5f9; }
 
         /* ─── RICH TOOLTIP SYSTEM ───────────────── */
         #tt {
@@ -1225,6 +1276,39 @@
     <!-- ════════════════ MAIN -->
     <main class="main">
 
+        <!-- Live Engine Operational Status Banner -->
+        <div id="engine-live-banner" class="engine-live-banner banner-running">
+            <div class="banner-left">
+                <div class="radar-pulse">
+                    <span class="radar-dot"></span>
+                    <span class="radar-ring"></span>
+                </div>
+                <div class="banner-info">
+                    <div class="banner-title" id="banner-title-text">
+                        🟢 MOTOR OPERANDO EN VIVO — TRADING HFT ACTIVO
+                    </div>
+                    <div class="banner-sub" id="banner-sub-text">
+                        Escaneando liquidez y volumen institucional en sub-segundos a través de KuCoin WebSocket | Frecuencia: 3.3 Ticks/seg
+                    </div>
+                </div>
+            </div>
+            <div class="banner-right">
+                <div class="banner-stat">
+                    <span class="stat-label">FRECUENCIA DE DATOS</span>
+                    <span class="stat-value mono" id="banner-tick-rate">⚡ 3.3 Ticks/seg</span>
+                </div>
+                <div class="banner-stat">
+                    <span class="stat-label">SIMBOLOGÍA ACTIVA</span>
+                    <span class="stat-value mono" id="banner-symbols-list" style="color:#60a5fa;">SOL · BTC · ETH</span>
+                </div>
+                <div class="banner-action">
+                    <button class="btn btn-sm btn-ghost" id="banner-toggle-btn" onclick="toggleEngineFromBanner()">
+                        ⏸ Pausar Motor
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- KPI row -->
         <div class="kpi-row">
             <div class="kpi-card" data-tt="capital">
@@ -1938,11 +2022,38 @@
         if (isRunning) {
             pill.className = 'status-pill status-on';
             dot.className  = 'pulse-dot pulse-on';
-            stxt.textContent = 'LIVE';
+            stxt.textContent = '🟢 OPERANDO EN VIVO';
         } else {
             pill.className = 'status-pill status-off';
             dot.className  = 'pulse-dot pulse-off';
-            stxt.textContent = 'PAUSADO';
+            stxt.textContent = '⏸️ EN PAUSA';
+        }
+
+        // Live Engine Operational Banner
+        const banner = document.getElementById('engine-live-banner');
+        const bTitle = document.getElementById('banner-title-text');
+        const bSub   = document.getElementById('banner-sub-text');
+        const bRate  = document.getElementById('banner-tick-rate');
+        const bSyms  = document.getElementById('banner-symbols-list');
+        const bBtn   = document.getElementById('banner-toggle-btn');
+        const activeSyms = (portfolio.symbols || ['SOL-USDT']).join(' · ');
+
+        if (banner) {
+            if (isRunning) {
+                banner.className = 'engine-live-banner banner-running';
+                if (bTitle) bTitle.innerHTML = `🟢 MOTOR OPERANDO EN VIVO — TRADING HFT ACTIVO`;
+                if (bSub)   bSub.textContent = `Escaneando liquidez y volumen institucional en sub-segundos a través de KuCoin WebSocket | Frecuencia: 3.3 Ticks/seg`;
+                if (bRate)  bRate.textContent = `⚡ 3.3 Ticks/seg (${(data.total_ticks || 0).toLocaleString()} Ticks)`;
+                if (bSyms)  bSyms.textContent = activeSyms;
+                if (bBtn)   { bBtn.textContent = '⏸ Pausar Motor'; bBtn.className = 'btn btn-sm btn-danger'; }
+            } else {
+                banner.className = 'engine-live-banner banner-stopped';
+                if (bTitle) bTitle.innerHTML = `⏸️ MOTOR EN PAUSA — TRADING DETENIDO`;
+                if (bSub)   bSub.textContent = `Haz clic en 'Iniciar Operación' para activar el escaneo de mercado y la ejecución de órdenes`;
+                if (bRate)  bRate.textContent = `⏸ 0 Ticks/seg`;
+                if (bSyms)  bSyms.textContent = activeSyms;
+                if (bBtn)   { bBtn.textContent = '▶ Iniciar Operación'; bBtn.className = 'btn btn-sm btn-success'; }
+            }
         }
 
         // Telemetry Activity Pill & Scan Badge
@@ -2428,19 +2539,27 @@
         }
     }
 
+    function toggleEngineFromBanner() {
+        if (isRunning) {
+            stopBot();
+        } else {
+            startBot();
+        }
+    }
+
     function startBot() {
-        setStatusUI(true, 'LIVE');
+        setStatusUI(true, '🟢 OPERANDO EN VIVO');
         fetch('/api/start')
             .then(r => r.json())
-            .then(data => setStatusUI(true, 'LIVE'))
+            .then(data => setStatusUI(true, '🟢 OPERANDO EN VIVO'))
             .catch(err => console.error("Error al iniciar motor:", err));
     }
 
     function stopBot() {
-        setStatusUI(false, 'PAUSADO');
+        setStatusUI(false, '⏸️ EN PAUSA');
         fetch('/api/stop')
             .then(r => r.json())
-            .then(data => setStatusUI(false, 'PAUSADO'))
+            .then(data => setStatusUI(false, '⏸️ EN PAUSA'))
             .catch(err => console.error("Error al pausar motor:", err));
     }
 
