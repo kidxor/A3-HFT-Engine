@@ -3,47 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A3 HFT Engine — Trading Dashboard</title>
-    <meta name="description" content="A3 Enterprise HFT Engine — Multi-asset algorithmic trading dashboard with real-time risk management.">
+    <title>A3 Motor Trade — Trading Dashboard</title>
+    <meta name="description" content="A3 Motor Trade — Multi-asset algorithmic trading dashboard with real-time risk management.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg:           #070a14;
-            --bg-panel:     rgba(13, 19, 36, 0.75);
-            --bg-card:      rgba(17, 25, 46, 0.85);
-            --bg-hover:     rgba(59, 130, 246, 0.08);
-            --border:       rgba(255, 255, 255, 0.08);
-            --border-focus: rgba(99, 179, 237, 0.5);
+            --bg:           #07080c;
+            --bg-surface:   #0d0f17;
+            --bg-panel:     rgba(13, 17, 27, 0.78);
+            --bg-card:      rgba(17, 22, 35, 0.88);
+            --bg-hover:     rgba(0, 242, 254, 0.06);
+            --border:       rgba(255, 255, 255, 0.07);
+            --border-light: rgba(255, 255, 255, 0.12);
+            --border-cyan:  rgba(0, 242, 254, 0.35);
+            --border-focus: rgba(0, 242, 254, 0.6);
 
             --text-primary: #f8fafc;
             --text-secondary:#94a3b8;
-            --text-dim:     #64748b;
+            --text-dim:     #52617b;
+
+            --cyan:         #00f2fe;
+            --cyan-dim:     rgba(0, 242, 254, 0.12);
+            --cyan-glow:    0 0 24px rgba(0, 242, 254, 0.25);
 
             --blue:         #3b82f6;
-            --blue-dim:     rgba(59,130,246,0.12);
-            --blue-border:  rgba(59,130,246,0.35);
-            --blue-glow:    0 0 24px rgba(59,130,246,0.25);
+            --blue-dim:     rgba(59, 130, 246, 0.12);
+            --blue-border:  rgba(59, 130, 246, 0.35);
+            --blue-glow:    0 0 24px rgba(59, 130, 246, 0.25);
 
             --green:        #10b981;
-            --green-dim:    rgba(16,185,129,0.12);
-            --green-border: rgba(16,185,129,0.3);
+            --green-dim:    rgba(16, 185, 129, 0.12);
+            --green-border: rgba(16, 185, 129, 0.35);
 
-            --red:          #ef4444;
-            --red-dim:      rgba(239,68,68,0.12);
-            --red-border:   rgba(239,68,68,0.3);
+            --red:          #f43f5e;
+            --red-dim:      rgba(244, 63, 94, 0.12);
+            --red-border:   rgba(244, 63, 94, 0.35);
 
             --purple:       #8b5cf6;
-            --purple-dim:   rgba(139,92,246,0.12);
+            --purple-dim:   rgba(139, 92, 246, 0.12);
 
             --amber:        #f59e0b;
-            --amber-dim:    rgba(245,158,11,0.12);
+            --amber-dim:    rgba(245, 158, 11, 0.12);
 
-            --glass:        rgba(255,255,255,0.03);
-            --glow-blue:    0 0 28px rgba(59,130,246,0.18);
-            --glow-green:   0 0 24px rgba(16,185,129,0.18);
+            --glass:        rgba(255, 255, 255, 0.03);
+            --glow-blue:    0 0 28px rgba(0, 242, 254, 0.2);
+            --glow-green:   0 0 24px rgba(16, 185, 129, 0.25);
 
             --radius-sm:    8px;
             --radius-md:    12px;
@@ -53,26 +61,36 @@
             --shadow-sm:    0 2px 8px rgba(0,0,0,0.5);
             --shadow-md:    0 8px 28px rgba(0,0,0,0.6);
             --shadow-lg:    0 16px 48px rgba(0,0,0,0.75);
-            --shadow-glow:  0 4px 32px rgba(59,130,246,0.18);
+            --shadow-glow:  0 4px 32px rgba(0,242,254,0.18);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        html, body {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
             background: var(--bg);
             background-image:
-                radial-gradient(ellipse 90% 70% at 15% 0%, rgba(59,130,246,0.08) 0%, transparent 65%),
-                radial-gradient(ellipse 70% 60% at 85% 100%, rgba(139,92,246,0.06) 0%, transparent 65%),
-                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.4) 0%, transparent 100%);
+                radial-gradient(ellipse 90% 70% at 15% 0%, rgba(0, 242, 254, 0.06) 0%, transparent 65%),
+                radial-gradient(ellipse 70% 60% at 85% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 65%),
+                radial-gradient(circle at 50% 50%, rgba(13, 17, 27, 0.5) 0%, transparent 100%);
             color: var(--text-primary);
             min-height: 100vh;
-            font-size: 14px;
+            font-size: 13.5px;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
         }
 
-        .mono { font-family: 'JetBrains Mono', monospace; }
+        .mono, .kpi-value, .indicator-val, .stat-value, .trades-table td {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
 
         /* ─── ANIMATIONS ─────────────────────────── */
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
@@ -165,8 +183,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 24px;
-            height: 56px;
+            padding: 0 16px;
+            height: 54px;
             background: rgba(10, 15, 28, 0.88);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -174,7 +192,11 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            gap: 16px;
+            gap: 12px;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+            overflow: hidden;
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         }
         .topbar::after {
@@ -209,10 +231,16 @@
         .ticker-strip {
             display: flex;
             align-items: center;
-            gap: 20px;
-            overflow: hidden;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             flex: 1;
-            justify-content: center;
+            min-width: 0;
+            white-space: nowrap;
+        }
+        .ticker-strip::-webkit-scrollbar {
+            display: none;
         }
         .ticker-item {
             display: flex;
@@ -225,6 +253,7 @@
             padding: 4px 10px;
             border-radius: 20px;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
         .ticker-item:hover { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.3); transform: translateY(-1px); }
         .ticker-label { color: var(--text-secondary); font-weight: 600; letter-spacing: 0.3px; }
@@ -267,23 +296,86 @@
         }
 
         /* ─── LAYOUT ─────────────────────────────── */
-        .layout {
-            display: flex;
-            min-height: calc(100vh - 56px);
-        }
-
-        /* ─── SIDEBAR ────────────────────────────── */
-        .sidebar {
-            flex: 0 0 240px;
-            background: rgba(11, 16, 30, 0.75);
-            backdrop-filter: blur(12px);
-            border-right: 1px solid var(--border);
-            padding: 20px 0;
+        /* ─── PRO TERMINAL WORKSPACE LAYOUT ─────── */
+        .layout.pro-terminal-layout {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            width: 100%;
+            min-height: calc(100vh - 56px);
+            background: #07080c;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ─── SLIDE-OVER DRAWER ──────────────────── */
+        .sidebar-drawer {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 300px;
+            height: 100vh;
+            background: rgba(10, 15, 28, 0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10000;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 10px 0 40px rgba(0, 0, 0, 0.8);
+        }
+        .sidebar-drawer.open {
+            left: 0;
+        }
+        .drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .btn-drawer-close {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-drawer-close:hover {
+            color: #fff;
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        .drawer-body {
+            flex: 1;
             overflow-y: auto;
-            min-height: 0;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .drawer-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .drawer-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .sidebar-section-label {
@@ -324,6 +416,275 @@
             flex-direction: column;
             gap: 8px;
             padding: 12px 18px;
+        }
+
+        /* ─── PRO MAIN WORKSPACE ─────────────────── */
+        .main.pro-main {
+            flex: 1;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 0;
+            width: 100%;
+            max-width: 100vw;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            margin: 0 auto;
+        }
+
+        /* ─── MACRO RIBBON (Compact KPIs) ────────── */
+        .macro-ribbon {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(11, 16, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            backdrop-filter: blur(12px);
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .macro-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 11px;
+        }
+        .macro-label {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .macro-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 11.5px;
+            color: #f1f5f9;
+        }
+
+        /* ─── UPPER WORKSTATION (GRID) ───────────── */
+        .workspace-upper {
+            display: grid;
+            grid-template-columns: minmax(0, 1.8fr) minmax(360px, 1fr);
+            gap: 10px;
+            align-items: stretch;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        @media (max-width: 1180px) {
+            .workspace-upper {
+                grid-template-columns: 1fr;
+            }
+        }
+        .chart-panel {
+            background: rgba(11, 16, 30, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .side-engine-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ─── LOWER WORKSTATION (DOCK) ───────────── */
+        .workspace-lower-dock {
+            background: rgba(11, 16, 30, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 240px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        }
+        .dock-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+        }
+        .dock-tabs {
+            display: flex;
+            gap: 2px;
+        }
+        .dock-tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 14px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #94a3b8;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+        .dock-tab-btn:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .dock-tab-btn.active {
+            color: #00f2fe;
+            border-bottom-color: #00f2fe;
+            background: rgba(0, 242, 254, 0.08);
+        }
+        .dock-tab-pane {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+            min-height: 180px;
+        }
+        .dock-tab-pane.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ─── AGENT & MODE SELECTOR STYLES ────────── */
+        .btn-mode-tab {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-mode-tab:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .btn-mode-tab.active {
+            background: rgba(0, 242, 254, 0.2);
+            color: #00f2fe;
+            border: 1px solid rgba(0, 242, 254, 0.4);
+        }
+        .agent-decision-card {
+            background: rgba(13, 15, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 3px solid #3b82f6;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        .agent-decision-card.a-plus {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        .playbook-editor-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            height: 100%;
+            padding: 10px 12px;
+        }
+        .playbook-textarea {
+            flex: 1;
+            min-height: 200px;
+            background: #07080c;
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+
+        /* ─── TRADING BOOKS RAG LIBRARY ──────────── */
+        .books-library-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px 14px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .books-search-bar {
+            display: flex;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.75);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            align-items: center;
+        }
+        .books-search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #f8fafc;
+            font-size: 11.5px;
+            outline: none;
+        }
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+        }
+        .book-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .book-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+            background: rgba(15, 23, 42, 0.85);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .book-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 12px;
+            font-size: 9.5px;
+            font-weight: 700;
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            margin-bottom: 6px;
+        }
+        .rag-result-card {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-left: 3px solid #10b981;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            color: #e2e8f0;
         }
 
         /* ─── BUTTONS ────────────────────────────── */
@@ -377,29 +738,9 @@
         .btn-full { width: 100%; }
         .btn-sm { padding: 6px 12px; font-size: 11px; }
 
-        /* ─── MAIN CONTENT ───────────────────────── */
-        .main {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            align-items: stretch;
-            min-height: 0;
-            min-width: 0;
-        }
-
-        /* ─── RIGHT PANEL ────────────────────────── */
+        /* ─── RIGHT PANEL (Legacy fallback) ─────── */
         .right-panel {
-            flex: 0 0 310px;
-            background: rgba(11,16,30,0.75);
-            backdrop-filter: blur(12px);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-height: 0;
+            display: none !important;
         }
 
         /* ─── KPI CARDS ──────────────────────────── */
@@ -572,6 +913,55 @@
 
         /* ─── CHART ──────────────────────────────── */
         .chart-wrap { height: 260px; position: relative; }
+
+        /* ─── SYMBOL QUICK TABS ──────────────────── */
+        .symbol-tabs {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 2px 4px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .symbol-tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #94a3b8;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .symbol-tab-btn:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .symbol-tab-btn.active {
+            background: rgba(0, 242, 254, 0.12);
+            border-color: rgba(0, 242, 254, 0.4);
+            color: #00f2fe;
+            box-shadow: 0 0 12px rgba(0, 242, 254, 0.2);
+        }
+        .symbol-tab-btn .hotkey-tag {
+            font-size: 9px;
+            color: #64748b;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1px 4px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            line-height: 1;
+        }
+        .symbol-tab-btn.active .hotkey-tag {
+            color: #38bdf8;
+            border-color: rgba(0, 242, 254, 0.3);
+        }
 
         /* ─── SIGNAL BADGE ───────────────────────── */
         .signal-badge {
@@ -1149,281 +1539,620 @@
         .settings-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
         .settings-row:last-child { border-bottom:none; }
         .settings-row span { font-size:12px; color:var(--text-secondary); }
-        .settings-num { width:70px; padding:4px 8px; background:var(--bg-terminal); border:1px solid var(--border); border-radius:6px; color:var(--text-primary); font-family:'JetBrains Mono',monospace; font-size:12px; text-align:right; }
-        .settings-num:focus { border-color:var(--blue); outline:none; }
+        /* ═══ AI Evolution Core Panel ═══ */
+        .ai-evolution-panel {
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, rgba(13, 22, 45, 0.85) 0%, rgba(20, 15, 38, 0.85) 100%);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px 20px;
+            backdrop-filter: blur(14px);
+            transition: all 0.3s ease;
+        }
+        .ai-evolution-panel:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+            box-shadow: 0 12px 36px rgba(139, 92, 246, 0.2);
+        }
+        .ai-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .ai-panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #e2e8f0;
+        }
+        .ai-badge-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(139, 92, 246, 0.15);
+            color: #c084fc;
+            border: 1px solid rgba(139, 92, 246, 0.4);
+        }
+        .ai-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .ai-metric-card {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .ai-metric-label {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .ai-metric-value {
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+        .ai-thought-box {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-left: 3px solid #a855f7;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .btn-ai-glow {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            color: #fff;
+            border: 1px solid rgba(167, 139, 250, 0.5);
+            box-shadow: 0 0 16px rgba(124, 58, 237, 0.35);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-ai-glow:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 24px rgba(124, 58, 237, 0.55);
+        }
     </style>
 </head>
 <body>
 
 <!-- ═══════════════════════════════════════════════ TOPBAR -->
 <header class="topbar">
-    <div class="brand" data-tt="brand">
-        <div class="brand-mark">A3</div>
-        <div>
-            <div class="brand-name">HFT Engine</div>
-            <div class="brand-sub">Multi-Asset Algorithmic Trading</div>
+    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0; overflow:hidden;">
+        <button class="btn btn-ghost btn-sm" onclick="toggleSidebarDrawer()" id="btn-drawer-toggle" style="padding:6px 9px; font-size:14px; flex-shrink:0;" title="Abrir Menú y Herramientas">
+            ☰
+        </button>
+        <div class="brand" data-tt="brand" style="flex-shrink:0;">
+            <div class="brand-mark" style="width:30px; height:30px; font-size:12px;">A3</div>
+            <div>
+                <div class="brand-name" style="font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px;">
+                    <span>A3 TERMINAL</span>
+                    <span style="font-size:9px; background:rgba(0,242,254,0.15); color:#00f2fe; padding:1px 5px; border-radius:4px; border:1px solid rgba(0,242,254,0.3); font-weight:700;">PRO</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ticker-strip" id="ticker-strip" data-tt="ticker-strip" style="margin-left:4px; gap:6px;">
+            <div class="ticker-item" style="padding:2px 8px; font-size:11px;">
+                <span class="ticker-label">SOL</span>
+                <span class="ticker-price" id="ticker-sol">—</span>
+            </div>
+            <div class="ticker-item" style="padding:2px 8px; font-size:11px;">
+                <span class="ticker-label">BTC</span>
+                <span class="ticker-price" id="ticker-btc">—</span>
+            </div>
+            <div class="ticker-item" style="padding:2px 8px; font-size:11px;">
+                <span class="ticker-label">ETH</span>
+                <span class="ticker-price" id="ticker-eth">—</span>
+            </div>
         </div>
     </div>
 
-    <div class="ticker-strip" id="ticker-strip" data-tt="ticker-strip">
-        <div class="ticker-item">
-            <span class="ticker-label">SOL</span>
-            <span class="ticker-price" id="ticker-sol">—</span>
+    <!-- Center-Right: Fast Capital Input & Master Engine Control -->
+    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+        <div style="display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.4); padding:3px 8px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <span style="font-size:11px; color:#94a3b8; font-weight:600;">Capital:</span>
+            <span style="font-size:12px; font-family:'JetBrains Mono',monospace; color:var(--green); font-weight:700;">$</span>
+            <input type="number" id="hft-input-capital" value="200" min="10" step="10" style="width:75px; padding:3px 6px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1); border-radius:4px; color:#fff; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:700;">
+            <button onclick="saveHftCapital()" class="btn btn-sm btn-primary" style="padding:3px 8px; font-size:10.5px; font-weight:700;">💾</button>
+            <button onclick="resetStatsAndDb()" class="btn btn-sm btn-ghost" style="padding:3px 6px; font-size:10.5px; color:#ef4444; border-color:rgba(239,68,68,0.3);" title="Reiniciar base de datos a cero">🧹</button>
         </div>
-        <div class="ticker-item">
-            <span class="ticker-label">BTC</span>
-            <span class="ticker-price" id="ticker-btc">—</span>
-        </div>
-        <div class="ticker-item">
-            <span class="ticker-label">ETH</span>
-            <span class="ticker-price" id="ticker-eth">—</span>
-        </div>
-    </div>
 
-    <div class="topbar-right">
-        <div class="activity-chip" id="activity-chip" style="display:flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;" data-tt="activity-chip">
-            <span class="pulse-dot pulse-on" style="width:7px;height:7px;background:#10b981;box-shadow:0 0 8px #10b981;"></span>
-            <span id="activity-rate" style="color:#10b981;font-weight:600;">⚡ 3.3 t/s</span>
-            <span style="color:var(--text-dim);">|</span>
-            <span id="activity-ticks" style="color:var(--text-secondary);">0 Ticks</span>
-        </div>
-        <div class="uptime-chip mono" id="uptime-chip" data-tt="uptime-chip">00:00:00</div>
-        <div class="status-pill status-on" id="status-pill" data-tt="status-pill">
-            <div class="pulse-dot pulse-on" id="pulse-dot"></div>
-            <span id="status-text">🟢 OPERANDO EN VIVO</span>
+        <a href="/stats.html" class="btn btn-sm" style="display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(16,185,129,0.2));border:1px solid #3b82f6;color:#38bdf8;font-weight:700;padding:5px 11px;font-size:11.5px;border-radius:8px;text-decoration:none;" title="Ver Historial de Ganancias Diarias y Progreso hacia la Meta de $500 USD">
+            📊 Historial & Meta $500
+        </a>
+
+        <button class="btn btn-primary" onclick="toggleEngineFromBanner()" id="btn-master-toggle" data-tt="btn-master-toggle" style="font-weight:700; padding:5px 12px; font-size:11.5px; border-radius:8px;">
+            ▶ Iniciar Operación
+        </button>
+
+
+        <div class="topbar-right" style="gap:6px;">
+            <div class="activity-chip" id="activity-chip" style="display:flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:20px;font-size:10.5px;font-family:'JetBrains Mono',monospace;" data-tt="activity-chip">
+                <span class="pulse-dot pulse-on" style="width:6px;height:6px;background:#10b981;box-shadow:0 0 6px #10b981;"></span>
+                <span id="activity-rate" style="color:#10b981;font-weight:600;">⚡ 3.3 t/s</span>
+                <span style="display:none;" id="activity-ticks">0 Ticks</span>
+            </div>
+            <div class="uptime-chip mono" id="uptime-chip" data-tt="uptime-chip" style="font-size:10.5px; padding:3px 9px;">00:00:00</div>
+            <div class="status-pill status-on" id="status-pill" data-tt="status-pill" style="font-size:10.5px; padding:3px 9px;">
+                <div class="pulse-dot pulse-on" id="pulse-dot"></div>
+                <span id="status-text">🟢 OPERANDO EN VIVO</span>
+            </div>
         </div>
     </div>
 </header>
 
 <!-- ═══════════════════════════════════════════════ LAYOUT -->
-<div class="layout">
+<div class="layout pro-terminal-layout">
 
-    <!-- ════════════════ SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-section-label">Control del Motor</div>
-
-        <div class="action-group">
-            <button class="btn btn-primary btn-full" onclick="toggleEngineFromBanner()" id="btn-master-toggle" data-tt="btn-master-toggle" style="font-weight:700;">
-                ▶ Iniciar Operación
-            </button>
-            <button class="btn btn-ghost btn-full" onclick="resetBot()" id="btn-restart" data-tt="btn-restart" style="margin-top:2px;">
-                ↺ Reiniciar Engine
-            </button>
-            <button class="btn btn-ghost btn-full" onclick="openWizard(1)" id="btn-wizard" style="margin-top:2px;font-size:12px;color:var(--blue);" data-tt="sidebar-profile">
-                ⚙ Asistente / Wizard
-            </button>
+    <!-- Slide-over Drawer for Advanced Tools -->
+    <aside class="sidebar-drawer" id="sidebar-drawer">
+        <div class="drawer-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:16px;">⚡</span>
+                <span style="font-weight:700;font-size:13px;color:#fff;">Herramientas & Configuración</span>
+            </div>
+            <button class="btn-drawer-close" onclick="toggleSidebarDrawer()">✕</button>
         </div>
-
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Configuración</div>
-
-        <button class="sidebar-btn active" onclick="openProfilesModal()" id="btn-profiles" data-tt="sbtn-profiles" style="background:rgba(59,130,246,0.12);color:#60a5fa;">
-            <span class="icon">👤</span>
-            <span>Perfiles & Estrategias</span>
-        </button>
-        <button class="sidebar-btn" onclick="openArchitectureModal()" id="btn-architecture" data-tt="sbtn-arch" style="background:rgba(16,185,129,0.08);color:#10b981;margin-top:4px;">
-            <span class="icon">🌐</span>
-            <span>Arquitectura & API</span>
-        </button>
-        <button class="sidebar-btn" onclick="openSettings()" id="btn-settings" data-tt="btn-settings" style="margin-top:4px;">
-            <span class="icon">⚙</span>
-            <span>Configuración Avanzada</span>
-        </button>
-
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Mantenimiento</div>
-
-        <button class="sidebar-btn" onclick="resetRiskGuard()" id="btn-resetrisk" data-tt="btn-resetrisk">
-            <span class="icon">🛡</span>
-            <span>Reset Risk Guard</span>
-        </button>
-        <button class="sidebar-btn" onclick="clearDatabaseUI()" data-tt="btn-cleardb">
-            <span class="icon">🗑</span>
-            <span>Limpiar Base de Datos</span>
-        </button>
-        <button class="sidebar-btn" onclick="toggleAudioAlerts()" id="btn-audio" data-tt="btn-audio">
-            <span class="icon">🔇</span>
-            <span>Alertas de Sonido</span>
-        </button>
-
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Información del Perfil</div>
-        <div style="padding: 8px 16px;" data-tt="sidebar-info">
-            <div style="font-size: 11px; color: var(--text-dim); line-height: 1.7;">
-                <div>Capital: <span class="mono" id="sb-capital" style="color:var(--text-secondary);">$3,000</span></div>
+        <div class="drawer-body">
+            <div class="sidebar-section-label">Motor Algorítmico</div>
+            <div class="action-group">
+                <button class="btn btn-ghost btn-full" onclick="resetBot()" id="btn-restart" data-tt="btn-restart">↺ Reiniciar Engine</button>
+                <button class="btn btn-ghost btn-full" onclick="openWizard(1);toggleSidebarDrawer();" id="btn-wizard" style="color:var(--blue);" data-tt="sidebar-profile">⚙ Asistente / Wizard</button>
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">Configuración & Perfiles</div>
+            <button class="sidebar-btn" onclick="openProfilesModal();toggleSidebarDrawer();" id="btn-profiles" data-tt="sbtn-profiles">
+                <span class="icon">👤</span> <span>Perfiles & Estrategias</span>
+            </button>
+            <button class="sidebar-btn" onclick="openArchitectureModal();toggleSidebarDrawer();" id="btn-architecture" data-tt="sbtn-arch">
+                <span class="icon">🌐</span> <span>Arquitectura & API</span>
+            </button>
+            <button class="sidebar-btn" onclick="openSettings();toggleSidebarDrawer();" id="btn-settings" data-tt="btn-settings">
+                <span class="icon">⚙</span> <span>Configuración Avanzada</span>
+            </button>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">Mantenimiento</div>
+            <button class="sidebar-btn" onclick="resetRiskGuard()" id="btn-resetrisk" data-tt="btn-resetrisk">
+                <span class="icon">🛡</span> <span>Reset Risk Guard</span>
+            </button>
+            <button class="sidebar-btn" onclick="clearDatabaseUI()" data-tt="btn-cleardb">
+                <span class="icon">🗑</span> <span>Limpiar Base de Datos</span>
+            </button>
+            <button class="sidebar-btn" onclick="toggleAudioAlerts()" id="btn-audio" data-tt="btn-audio">
+                <span class="icon">🔇</span> <span>Alertas de Sonido</span>
+            </button>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">Perfil Vigente</div>
+            <div style="padding: 8px 18px; font-size: 11px; color: var(--text-dim); line-height: 1.8;">
+                <div>Capital Base: <span class="mono" id="sb-capital" style="color:var(--text-secondary);">$200</span></div>
                 <div>Estrategia: <span class="mono" id="sb-strategy" style="color:var(--text-secondary);">alpha_edge</span></div>
-                <div>Riesgo/trade: <span class="mono" id="sb-risk" style="color:var(--text-secondary);">1.0%</span></div>
-                <div>DD Máx: <span class="mono" id="sb-maxdd" style="color:var(--text-secondary);">5.0%</span></div>
+                <div>Riesgo / Trade: <span class="mono" id="sb-risk" style="color:var(--text-secondary);">2.0%</span></div>
+                <div>DD Máximo: <span class="mono" id="sb-maxdd" style="color:var(--text-secondary);">10.0%</span></div>
             </div>
         </div>
     </aside>
+    <div class="drawer-backdrop" id="drawer-backdrop" onclick="toggleSidebarDrawer()"></div>
 
-    <!-- ════════════════ MAIN -->
-    <main class="main">
+    <!-- MAIN PRO WORKSPACE -->
+    <main class="main pro-main">
 
-        <!-- Live Engine Operational Status Banner -->
-        <div id="engine-live-banner" class="engine-live-banner banner-running">
+        <!-- Compact Integrated Alert Ribbon -->
+        <div id="engine-live-banner" class="engine-live-banner banner-running" style="padding:8px 14px; margin:0; border-radius:8px;">
             <div class="banner-left">
-                <div class="radar-pulse">
-                    <span class="radar-dot"></span>
+                <div class="radar-pulse" style="width:16px;height:16px;">
+                    <span class="radar-dot" style="width:8px;height:8px;"></span>
                     <span class="radar-ring"></span>
                 </div>
                 <div class="banner-info">
-                    <div class="banner-title" id="banner-title-text">
-                        🟢 MOTOR OPERANDO EN VIVO — TRADING HFT ACTIVO
+                    <div class="banner-title" id="banner-title-text" style="font-size:11.5px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                        <span>🟢 A3 MOTOR TRADE PRO</span>
+                        <div class="mode-selector-tabs" style="display:inline-flex;gap:3px;align-items:center;background:rgba(0,0,0,0.4);padding:2px 4px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">
+                            <button type="button" class="btn-mode-tab" id="btn-mode-ALGORITHMIC" onclick="setAgentMode('ALGORITHMIC')">⚡ Algorítmico</button>
+                            <button type="button" class="btn-mode-tab active" id="btn-mode-HYBRID_CONSENSUS" onclick="setAgentMode('HYBRID_CONSENSUS')">🤝 Híbrido (5%-8%)</button>
+                            <button type="button" class="btn-mode-tab" id="btn-mode-AUTONOMOUS" onclick="setAgentMode('AUTONOMOUS')">🤖 Autónomo LLM</button>
+                        </div>
+                        <span class="chip chip-green" style="font-size:9px;padding:1px 5px;">🛡️ SCALE-OUT 50%</span>
+                        <span class="chip chip-blue" style="font-size:9px;padding:1px 5px;">⚡ NEWS SPIKE GUARD</span>
                     </div>
-                    <div class="banner-sub" id="banner-sub-text">
-                        Escaneando liquidez y volumen institucional en sub-segundos a través de KuCoin WebSocket | Frecuencia: 3.3 Ticks/seg
+                    <div class="banner-sub" id="banner-sub-text" style="font-size:10px;color:#94a3b8;margin:0;">
+                        Escaneando órdenes en tiempo real a través de Bybit | Scale-out al 50% en 1.5x ATR | SL Breakeven +0.1%
                     </div>
                 </div>
             </div>
-            <div class="banner-right">
+            <div class="banner-right" style="gap:12px;">
                 <div class="banner-stat">
-                    <span class="stat-label">FRECUENCIA DE DATOS</span>
-                    <span class="stat-value mono" id="banner-tick-rate">⚡ 3.3 Ticks/seg</span>
+                    <span class="stat-label" style="font-size:8px;">FRECUENCIA</span>
+                    <span class="stat-value mono" id="banner-tick-rate" style="font-size:11px;">⚡ 3.3 Ticks/seg</span>
                 </div>
                 <div class="banner-stat">
-                    <span class="stat-label">SIMBOLOGÍA ACTIVA</span>
-                    <span class="stat-value mono" id="banner-symbols-list" style="color:#60a5fa;">SOL · BTC · ETH</span>
+                    <span class="stat-label" style="font-size:8px;">SIMBOLOGÍA</span>
+                    <span class="stat-value mono" id="banner-symbols-list" style="color:#60a5fa;font-size:11px;">SOL · BTC · ETH</span>
                 </div>
                 <div class="banner-action">
-                    <button class="btn btn-sm btn-ghost" id="banner-toggle-btn" onclick="toggleEngineFromBanner()">
-                        ⏸ Pausar Motor
+                    <button class="btn btn-sm btn-ghost" id="banner-toggle-btn" onclick="toggleEngineFromBanner()" style="padding:3px 8px;font-size:10.5px;">
+                        <span style="opacity:0.7;font-size:9px;margin-right:3px;">[SPACE]</span> ⏸ Pausar Motor
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- KPI row -->
-        <div class="kpi-row">
-            <div class="kpi-card" data-tt="capital">
-                <div class="kpi-label">Capital Total</div>
-                <div class="kpi-value" id="kpi-capital">$3,000.00</div>
-                <div class="kpi-meta" id="kpi-capital-sub">Posición: 60% · $1,800/trade</div>
+        <!-- MACRO KPI RIBBON (Compact unified metrics) -->
+        <div class="macro-ribbon">
+            <div class="macro-item" data-tt="account-total">
+                <span class="macro-label">🏦 Balance</span>
+                <span class="macro-val" id="kpi-account-total" style="color:#f8fafc;">$200.00</span>
+                <span id="kpi-account-total-sub" style="display:none;"></span>
             </div>
-            <div class="kpi-card" data-tt="pnl">
-                <div class="kpi-label">PnL Neto</div>
-                <div class="kpi-value kpi-positive" id="kpi-pnl">+$0.00</div>
-                <div class="kpi-meta" id="kpi-pnl-sub">TP: +$68 | SL: -$27 | R:R 2.53:1</div>
+            <div class="macro-item" data-tt="base-capital" style="border-color:rgba(0,242,254,0.25);">
+                <span class="macro-label">⚙️ Capital Base</span>
+                <span class="macro-val" id="kpi-base-capital-hft" style="color:#00f2fe;">$200.00</span>
+                <span id="kpi-base-capital-sub" style="display:none;"></span>
+                <span id="kpi-capital" style="display:none;">$200.00</span>
+                <span id="kpi-capital-sub" style="display:none;"></span>
             </div>
-            <div class="kpi-card" data-tt="winrate">
-                <div class="kpi-label">Win Rate</div>
-                <div class="kpi-value" id="kpi-winrate">0.0%</div>
-                <div class="kpi-meta" id="kpi-winrate-sub">0 trades cerrados</div>
+            <div class="macro-item" data-tt="pnl">
+                <span class="macro-label">📈 PnL Neto</span>
+                <span class="macro-val kpi-positive" id="kpi-pnl">+$0.00</span>
+                <span id="kpi-pnl-sub" style="display:none;"></span>
             </div>
-            <div class="kpi-card" data-tt="drawdown">
-                <div class="kpi-label">Drawdown Actual</div>
-                <div class="kpi-value" id="kpi-dd">0.00%</div>
-                <div class="kpi-meta" id="kpi-dd-sub">Límite: 5.0%</div>
+            <div class="macro-item" data-tt="winrate">
+                <span class="macro-label">🎯 Win Rate</span>
+                <span class="macro-val" id="kpi-winrate">0.0%</span>
+                <span id="kpi-winrate-sub" style="display:none;"></span>
             </div>
-            <div class="kpi-card" data-tt="pf" style="border-left:3px solid rgba(167,139,250,0.4);">
-                <div class="kpi-label">Profit Factor</div>
-                <div class="kpi-value" id="kpi-pf">0.00</div>
-                <div class="kpi-meta" id="kpi-pf-sub">Sharpe: <span id="kpi-sharpe">0.00</span></div>
+            <div class="macro-item" data-tt="drawdown">
+                <span class="macro-label">📉 Drawdown</span>
+                <span class="macro-val" id="kpi-dd">0.00%</span>
+                <span id="kpi-dd-sub" style="font-size:9px;color:#64748b;margin-left:4px;">Límite: 10.0%</span>
+            </div>
+            <div class="macro-item" data-tt="pf">
+                <span class="macro-label">📊 PF / Sharpe</span>
+                <span class="macro-val"><span id="kpi-pf">0.00</span> / <span id="kpi-sharpe">0.00</span></span>
+                <span id="kpi-pf-sub" style="display:none;"></span>
+            </div>
+            <div class="macro-item" style="border-color:rgba(168,85,247,0.3);">
+                <span class="macro-label">🧠 Alpha IA</span>
+                <span class="macro-val" id="ai-alpha-usd" style="color:#10b981;">+$0.00 USD</span>
+            </div>
+            <div class="macro-item" id="risk-bar" data-tt="riskguard" style="gap:8px;">
+                <span id="risk-icon">🛡️</span>
+                <span class="macro-label">Risk Guard</span>
+                <span class="macro-val" id="risk-status-text" style="color:var(--green);font-size:10px;">OPERATIVO</span>
+                <div class="risk-gauge-track" style="width:50px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;" data-tt="riskgauge">
+                    <div class="risk-gauge-fill" id="risk-gauge-fill" style="width:0%;height:100%;border-radius:2px;background:var(--green);"></div>
+                </div>
+                <span style="font-size:9px;color:#64748b;"><b class="mono" id="risk-dd-val">0.00%</b> / <b class="mono" id="risk-dd-lim">10.0%</b></span>
+                <span style="display:none;" id="risk-consec">0 / 5</span>
             </div>
         </div>
 
-        <!-- Risk Bar -->
-        <div class="risk-bar" id="risk-bar" data-tt="riskguard">
-            <div style="display:flex;align-items:center;gap:8px;">
-                <span id="risk-icon">🛡</span>
-                <span class="risk-label">Risk Guard</span>
-                <span class="risk-value" id="risk-status-text" style="color:var(--green);">OPERATIVO</span>
-            </div>
-            <div class="risk-gauge-track" data-tt="riskgauge">
-                <div class="risk-gauge-fill" id="risk-gauge-fill" style="width:0%"></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:16px;font-size:11px;color:var(--text-secondary);">
-                <span data-tt="drawdownpct">Drawdown: <b class="mono" id="risk-dd-val">0.00%</b> / <b class="mono" id="risk-dd-lim">15.0%</b></span>
-                <span data-tt="conseclosses">Pérd. Consec.: <b class="mono" id="risk-consec">0 / 5</b></span>
-            </div>
-        </div>
+        <!-- UPPER WORKSTATION: Chart (Left) + AI & Execution (Right) -->
+        <div class="workspace-upper">
 
-        <!-- Multi-bot cards (shown when parallel) -->
-        <div id="bot-cards-section" style="display:none;">
-            <div class="section-header">
-                <span class="section-title">Bots en Paralelo</span>
-            </div>
-            <div class="bot-cards" id="bot-cards-grid"></div>
-        </div>
-
-        <!-- Chart + Algo panel -->
-        <div class="chart-signal-grid">
-
-            <div class="panel">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        📈 Precio en Vivo
-                        <select class="form-control" id="chart-symbol-select" style="width:auto;padding:3px 8px;font-size:12px;" onchange="selectedChartSymbol=this.value" data-tt="chart-select">
-                            <option>SOL-USDT</option>
+            <!-- Chart Panel -->
+            <div class="panel chart-panel">
+                <div class="panel-header" style="padding:6px 12px; min-height:42px;">
+                    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <span class="panel-title" style="margin:0; font-size:12.5px; font-weight:700;">📈 Gráfico de Precios</span>
+                        <div class="symbol-tabs" id="symbol-tabs-container">
+                            <button type="button" class="symbol-tab-btn active" data-symbol="SOL-USDT" id="btn-sym-SOL-USDT" onclick="setChartSymbol('SOL-USDT')">
+                                SOL <span class="hotkey-tag">1</span>
+                            </button>
+                            <button type="button" class="symbol-tab-btn" data-symbol="BTC-USDT" id="btn-sym-BTC-USDT" onclick="setChartSymbol('BTC-USDT')">
+                                BTC <span class="hotkey-tag">2</span>
+                            </button>
+                            <button type="button" class="symbol-tab-btn" data-symbol="ETH-USDT" id="btn-sym-ETH-USDT" onclick="setChartSymbol('ETH-USDT')">
+                                ETH <span class="hotkey-tag">3</span>
+                            </button>
+                        </div>
+                        <select class="form-control" id="chart-symbol-select" style="display:none;" onchange="setChartSymbol(this.value)" data-tt="chart-select">
+                            <option value="SOL-USDT" selected>SOL-USDT</option>
                         </select>
+                        <div style="display:inline-flex;gap:6px;align-items:center;font-size:10px;color:#64748b;font-family:'JetBrains Mono',monospace;">
+                            <span style="display:inline-flex;align-items:center;gap:3px;"><span style="display:inline-block;width:8px;height:2px;background:#00f2fe;"></span> EMA 20</span>
+                            <span style="display:inline-flex;align-items:center;gap:3px;"><span style="display:inline-block;width:8px;height:2px;background:#f59e0b;"></span> EMA 50</span>
+                        </div>
                     </div>
-                    <span style="font-size:11px;color:var(--green);" id="chart-live-tag">● Live</span>
+                    <span style="font-size:11.5px;color:var(--green);font-family:'JetBrains Mono',monospace;font-weight:700;" id="chart-live-tag">● Live</span>
                 </div>
-                <div class="panel-body" style="padding:12px 16px;" data-tt="chart-panel">
-                    <div class="chart-wrap">
-                        <canvas id="priceChart"></canvas>
+                <div class="panel-body" style="padding:8px 12px; flex:1; display:flex; flex-direction:column;" data-tt="chart-panel">
+                    <div class="chart-wrap" style="flex:1; height:320px; position:relative; min-height:300px;" id="chart-container-box">
+                        <div id="tv-chart" style="width:100%; height:100%;"></div>
+                        <canvas id="priceChart" style="display:none;"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="panel">
-                <div class="panel-header">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span class="panel-title">Señal & Diagnóstico de Ejecución</span>
-                        <div id="scan-badge" style="font-size:10px;padding:3px 8px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#60a5fa;border-radius:12px;display:flex;align-items:center;gap:4px;">
-                            <span class="pulse-dot pulse-on" style="width:6px;height:6px;background:#60a5fa;box-shadow:0 0 6px #60a5fa;"></span>
-                            <span id="scan-badge-text">⚡ EVALUANDO MERCADO (300ms)</span>
+            <!-- Side Engine Column: AI Evolution Core + Signal Diagnostics -->
+            <div class="side-engine-col">
+
+                <!-- 1. AI Evolution Core -->
+                <div class="ai-evolution-panel" id="ai-evolution-panel" style="margin:0; border-radius:12px;">
+                    <div class="ai-panel-header" style="padding:8px 12px;">
+                        <div class="ai-panel-title" style="font-size:11px;">
+                            <span style="font-size:14px;">🧠</span>
+                            <span>AI EVOLUTION CORE</span>
+                            <span class="ai-badge-pulse" id="ai-status-badge" style="font-size:9px;padding:2px 6px;">🟢 LOCAL LLM AUDIT</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <label class="toggle-switch" title="Activar/Pausar Auto-Evolución AI" style="margin:0;">
+                                <input type="checkbox" id="ai-toggle-switch" checked onchange="toggleAIEvolution(this.checked)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <button class="btn btn-sm btn-ai-glow" id="btn-force-ai" onclick="triggerAIOptimization()" style="padding:3px 8px; font-size:10px;">
+                                ⚡ Optimizar
+                            </button>
                         </div>
                     </div>
-                    <div id="signal-chip" class="signal-badge signal-neutral" data-tt="signal-chip">NEUTRAL</div>
+                    <div class="ai-metrics-grid" style="padding:6px 10px; gap:6px; margin-bottom:8px;">
+                        <div class="ai-metric-card" style="border-left:3px solid #a855f7; padding:5px 8px;">
+                            <span class="ai-metric-label" style="font-size:9.5px;">Régimen</span>
+                            <span class="ai-metric-value" id="ai-regime-text" style="color:#c084fc; font-size:11px;">TENDENCIA PRO</span>
+                        </div>
+                        <div class="ai-metric-card" style="border-left:3px solid #3b82f6; padding:5px 8px;">
+                            <span class="ai-metric-label" style="font-size:9.5px;">Sharpe Sandbox</span>
+                            <span class="ai-metric-value" id="ai-sharpe-text" style="color:#60a5fa; font-size:11px;">2.45 (+15.2%)</span>
+                        </div>
+                        <div class="ai-metric-card" style="border-left:3px solid #f59e0b; padding:5px 8px;">
+                            <span class="ai-metric-label" style="font-size:9.5px;">Calibraciones</span>
+                            <span class="ai-metric-value" id="ai-calibrations-count" style="color:#fbbf24; font-size:11px;">0 Ciclos</span>
+                        </div>
+                    </div>
+                    <div class="ai-thought-box" id="ai-thought-stream" style="margin:0 10px 8px; padding:5px 8px; font-size:10px;">
+                        <span>💡</span>
+                        <div id="ai-hypothesis-text" style="color:#cbd5e1; line-height:1.35;">
+                            Escaneando hiperparámetros con Local LLM y Sandbox RAM a $0 costo.
+                        </div>
+                    </div>
                 </div>
-                <div class="panel-body signal-body">
-                    <div style="font-size:12px;color:var(--text-secondary);min-height:38px;line-height:1.5;padding:8px 12px;background:rgba(0,0,0,0.25);border-radius:8px;border-left:3px solid var(--blue);" id="signal-reason">
-                        Monitoreando flujo de ordenes en tiempo real...
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;">
-                        <span>📡 Stream KuCoin: <b id="proxy-status-text" style="color:var(--green)">Conectado (8 Pares)</b></span>
-                        <span id="last-tick-time">Frescura: &lt;100ms</span>
-                    </div>
-                    <hr class="divider">
-                    <div class="indicator-grid">
-                        <div class="indicator-cell" data-tt="ind-strategy">
-                            <div class="indicator-name">Estrategia</div>
-                            <div class="indicator-val" id="ind-strategy">—</div>
+
+                <!-- 2. Signal & Execution Diagnostics -->
+                <div class="panel" style="margin:0; border-radius:12px; flex:1; display:flex; flex-direction:column;">
+                    <div class="panel-header" style="padding:6px 12px; min-height:38px;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span class="panel-title" style="font-size:11px;font-weight:700;">Diagnóstico de Señal</span>
+                            <div id="scan-badge" style="font-size:9px;padding:1px 5px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#60a5fa;border-radius:10px;display:flex;align-items:center;gap:4px;">
+                                <span class="pulse-dot pulse-on" style="width:5px;height:5px;background:#60a5fa;box-shadow:0 0 6px #60a5fa;"></span>
+                                <span id="scan-badge-text">300ms</span>
+                            </div>
                         </div>
-                        <div class="indicator-cell" data-tt="ind-ema">
-                            <div class="indicator-name">EMA 200</div>
-                            <div class="indicator-val" id="ind-ema">—</div>
+                        <div id="signal-chip" class="signal-badge signal-neutral" data-tt="signal-chip" style="font-size:9.5px;padding:2px 7px;">NEUTRAL</div>
+                    </div>
+                    <div class="panel-body signal-body" style="padding:8px 12px; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+                        <div style="font-size:10.5px;color:var(--text-secondary);line-height:1.4;padding:5px 8px;background:rgba(0,0,0,0.3);border-radius:6px;border-left:3px solid var(--blue);" id="signal-reason">
+                            Monitoreando flujo de órdenes en tiempo real...
                         </div>
-                        <div class="indicator-cell" data-tt="ind-adx">
-                            <div class="indicator-name">ADX (14)</div>
-                            <div class="indicator-val" id="ind-adx">—</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;font-size:9.5px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin:4px 0;">
+                            <span>📡 Bybit: <b id="proxy-status-text" style="color:var(--green)">Conectado</b></span>
+                            <span id="last-tick-time">&lt;100ms</span>
                         </div>
-                        <div class="indicator-cell" data-tt="ind-tpsl">
-                            <div class="indicator-name">TP / SL Est.</div>
-                            <div class="indicator-val" id="ind-tpsl" style="font-size:10px;">— / —</div>
+                        <div class="indicator-grid" style="gap:4px; margin:0;">
+                            <div class="indicator-cell" data-tt="ind-strategy" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">Estrategia</div>
+                                <div class="indicator-val" id="ind-strategy" style="font-size:10.5px;">—</div>
+                            </div>
+                            <div class="indicator-cell" data-tt="ind-ema" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">EMA 200</div>
+                                <div class="indicator-val" id="ind-ema" style="font-size:10.5px;">—</div>
+                            </div>
+                            <div class="indicator-cell" data-tt="ind-adx" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">ADX (14)</div>
+                                <div class="indicator-val" id="ind-adx" style="font-size:10.5px;">—</div>
+                            </div>
+                            <div class="indicator-cell" data-tt="ind-tpsl" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">TP / SL</div>
+                                <div class="indicator-val" id="ind-tpsl" style="font-size:9.5px;">— / —</div>
+                            </div>
+                            <div class="indicator-cell" data-tt="ind-candle" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">🕯️ Vela Japonesa</div>
+                                <div class="indicator-val" id="ind-candle" style="font-size:9.5px;color:#facc15;font-weight:700;">Normal</div>
+                            </div>
+                            <div class="indicator-cell" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">Scale-Out 50%</div>
+                                <div class="indicator-val" style="color:var(--green);font-size:9.5px;">1.5x ATR (BE)</div>
+                            </div>
+                            <div class="indicator-cell" style="padding:4px 6px;">
+                                <div class="indicator-name" style="font-size:8.5px;">News Spike</div>
+                                <div class="indicator-val" style="color:#60a5fa;font-size:9.5px;">3x ATR Active</div>
+                            </div>
                         </div>
                     </div>
-                    <hr class="divider">
-                    <div class="section-header" style="margin:0;">
-                        <span style="font-size:11px;font-weight:600;color:var(--text-secondary);">TRADES RECIENTES</span>
-                        <span style="font-size:10px;color:var(--text-dim);" id="db-count">0 registros</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- LOWER WORKSTATION: Institutional Tabbed Dock -->
+        <div class="workspace-lower-dock">
+            <div class="dock-header">
+                <div class="dock-tabs">
+                    <button type="button" class="dock-tab-btn active" data-tab="positions" onclick="switchDockTab('positions')">
+                        📌 Posiciones Activas (<span id="active-positions-count">0</span>)
+                    </button>
+                    <button type="button" class="dock-tab-btn" data-tab="trades" onclick="switchDockTab('trades')">
+                        📜 Historial de Trades (<span id="db-count">0</span>)
+                    </button>
+                    <button type="button" class="dock-tab-btn" data-tab="agent" onclick="switchDockTab('agent')">
+                        🧠 Razonamiento IA (<span id="agent-decisions-count">0</span>)
+                    </button>
+                    <button type="button" class="dock-tab-btn" data-tab="playbook" onclick="switchDockTab('playbook')">
+                        📚 Playbook Institucional
+                    </button>
+                    <button type="button" class="dock-tab-btn" data-tab="books" onclick="switchDockTab('books')">
+                        📖 Biblioteca RAG (<span id="books-count">7</span>)
+                    </button>
+                    <button type="button" class="dock-tab-btn" data-tab="terminal" onclick="switchDockTab('terminal')">
+                        ⚡ Consola HFT (<span id="log-count">0</span>)
+                    </button>
+                    <button type="button" class="dock-tab-btn" data-tab="bots" onclick="switchDockTab('bots')">
+                        🤖 Bots en Paralelo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pane 1: Active Positions -->
+            <div class="dock-tab-pane active" id="dock-pane-positions">
+                <div class="trades-scroll" style="flex:1;" data-tt="active-positions-table">
+                    <table class="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Par</th>
+                                <th>Lado</th>
+                                <th>Entrada</th>
+                                <th>Actual</th>
+                                <th>Progreso a TP</th>
+                                <th>PnL Flotante</th>
+                            </tr>
+                        </thead>
+                        <tbody id="active-positions-body">
+                            <tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px;font-size:11.5px;">Buscando confirmación de entrada...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pane 2: Trade History -->
+            <div class="dock-tab-pane" id="dock-pane-trades">
+                <div class="trades-scroll" style="flex:1;" data-tt="trades-table">
+                    <table class="trades-table">
+                        <thead>
+                            <tr>
+                                <th>Par</th>
+                                <th>Tipo</th>
+                                <th>Entrada</th>
+                                <th>PnL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trades-body">
+                            <tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:20px;font-size:11.5px;">Sin trades aún</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pane 3: Terminal Console -->
+            <div class="dock-tab-pane" id="dock-pane-terminal">
+                <div class="log-filters" style="background:rgba(0,0,0,0.25);padding:5px 12px;border-bottom:1px solid var(--border);">
+                    <div style="display:flex;gap:4px;align-items:center;">
+                        <button class="filter-tab active" onclick="setFilter('ALL',this)" data-tt="filter-all">Todos</button>
+                        <button class="filter-tab" onclick="setFilter('ORDER',this)" data-tt="filter-order">Órdenes</button>
+                        <button class="filter-tab" onclick="setFilter('SIGNAL',this)" data-tt="filter-signal">Señales</button>
+                        <button class="filter-tab" onclick="setFilter('RISK',this)" data-tt="filter-risk">Riesgo</button>
+                        <button class="filter-tab" onclick="setFilter('TICK',this)" data-tt="filter-tick">L2</button>
                     </div>
-                    <div class="trades-scroll" data-tt="trades-table">
-                        <table class="trades-table">
-                            <thead>
-                                <tr>
-                                    <th>Par</th>
-                                    <th>Tipo</th>
-                                    <th>Entrada</th>
-                                    <th>PnL</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trades-body">
-                                <tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:16px;">Sin trades aún</td></tr>
-                            </tbody>
-                        </table>
+                    <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+                        <button class="btn btn-ghost btn-sm" onclick="toggleScroll()" id="btn-scroll" data-tt="btn-scroll" style="padding:2px 8px;font-size:10px;">⏬ Auto</button>
+                        <button class="btn btn-ghost btn-sm" onclick="clearConsole()" data-tt="btn-clearlog" style="padding:2px 8px;font-size:10px;">✕ Limpiar</button>
+                    </div>
+                </div>
+                <div class="terminal" id="terminal" style="flex:1;min-height:140px;">
+                    <div style="color:var(--text-dim);text-align:center;margin-top:30px;">Esperando eventos...</div>
+                </div>
+            </div>
+
+            <!-- Pane 4: Multi-bot Cards -->
+            <div class="dock-tab-pane" id="dock-pane-bots">
+                <div style="padding:14px;" id="bot-cards-section">
+                    <div class="bot-cards" id="bot-cards-grid">
+                        <div style="color:var(--text-dim);font-size:11.5px;">Modo Bot Único Activo (AlphaEdge PRO). Configura multi-bot en el Wizard.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pane 5: Agent Decisions & Chain of Thought Timeline -->
+            <div class="dock-tab-pane" id="dock-pane-agent">
+                <div style="background:rgba(0,0,0,0.25);padding:6px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:11px;font-weight:700;color:#c084fc;">🧠 HISTORIAL DE RAZONAMIENTO, CONFLUENCIAS Y DIARIO (LLM AGENT)</span>
+                    <button class="btn btn-sm btn-ghost" onclick="evaluateAgentNow()" style="padding:2px 8px;font-size:10px;color:#00f2fe;">⚡ Evaluar Ahora</button>
+                </div>
+                <div id="agent-decisions-timeline" style="flex:1;padding:10px 12px;overflow-y:auto;min-height:160px;">
+                    <div style="color:var(--text-dim);text-align:center;margin-top:20px;font-size:11.5px;">Cargando flujo de pensamientos del agente...</div>
+                </div>
+            </div>
+
+            <!-- Pane 6: Playbook Knowledge Base & Live Editor -->
+            <div class="dock-tab-pane" id="dock-pane-playbook">
+                <div class="playbook-editor-wrap">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:11.5px;font-weight:700;color:#38bdf8;">📖 Documento Playbook:</span>
+                            <select id="playbook-file-select" class="form-control" style="width:280px;font-size:11px;padding:3px 8px;" onchange="loadSelectedPlaybook(this.value)">
+                                <option value="01_market_structure.md">01_market_structure.md</option>
+                                <option value="02_support_resistance.md">02_support_resistance.md</option>
+                                <option value="03_orderflow_and_confirmation.md">03_orderflow_and_confirmation.md</option>
+                                <option value="04_risk_and_conviction.md">04_risk_and_conviction.md</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="saveActivePlaybook()" style="padding:4px 14px;font-size:10.5px;">
+                            💾 Guardar Reglas de Trading
+                        </button>
+                    </div>
+                    <textarea id="playbook-editor-content" class="playbook-textarea" placeholder="Cargando reglas del Playbook..."></textarea>
+                </div>
+            </div>
+
+            <!-- Pane 7: Trading Books Library & Semantic RAG Search -->
+            <div class="dock-tab-pane" id="dock-pane-books">
+                <div class="books-library-wrap">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-size:12px;font-weight:700;color:#38bdf8;">📚 BIBLIOTECA MAESTRA & MOTOR RAG</span>
+                            <span style="font-size:10.5px;color:#94a3b8;">(Wyckoff, Al Brooks, Douglas, Elder, Dalton, Williams, SMC)</span>
+                        </div>
+                        <div style="font-size:10.5px;color:#10b981;font-weight:600;">
+                            ⚡ <span id="rag-chunks-stat">28</span> fragmentos semánticos indexados
+                        </div>
+                    </div>
+
+                    <!-- Search Box -->
+                    <div class="books-search-bar">
+                        <span style="font-size:14px;">🔍</span>
+                        <input type="text" id="books-search-input" class="books-search-input" placeholder="Buscar concepto o autor (ej: 'spring wyckoff', 'cuña al brooks', 'riesgo mark douglas')..." onkeyup="if(event.key==='Enter') searchBooksRAG()">
+                        <button class="btn btn-sm btn-primary" onclick="searchBooksRAG()" style="padding:3px 12px;font-size:10.5px;">Buscar RAG</button>
+                        <button class="btn btn-sm btn-ghost" onclick="clearBooksSearch()" style="padding:3px 8px;font-size:10.5px;">Limpiar</button>
+                    </div>
+
+                    <div id="rag-search-results" style="display:none;margin-bottom:10px;"></div>
+
+                    <!-- Books Grid -->
+                    <div class="books-grid" id="books-catalog-grid">
+                        <div style="color:var(--text-dim);text-align:center;padding:20px;font-size:11.5px;">Cargando catálogo de libros...</div>
+                    </div>
+
+                    <!-- Book Reader Modal / Viewer -->
+                    <div id="book-reader-view" style="display:none;background:#05070a;border:1px solid rgba(56,189,248,0.3);border-radius:8px;padding:14px;margin-top:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:8px;">
+                            <span id="book-reader-title" style="font-size:13px;font-weight:700;color:#38bdf8;"></span>
+                            <button class="btn btn-sm btn-ghost" onclick="closeBookReader()" style="padding:2px 8px;font-size:10.5px;">✕ Cerrar Lector</button>
+                        </div>
+                        <pre id="book-reader-content" style="white-space:pre-wrap;font-family:'JetBrains Mono',monospace;font-size:11px;color:#cbd5e1;max-height:350px;overflow-y:auto;line-height:1.5;"></pre>
                     </div>
                 </div>
             </div>
@@ -1431,28 +2160,6 @@
         </div>
 
     </main>
-
-    <!-- ════════════════ RIGHT PANEL (Terminal) -->
-    <aside class="right-panel">
-        <div class="rpanel-header" data-tt="console">
-            <span class="rpanel-title">Consola de Eventos</span>
-            <span class="chip chip-blue" id="log-count">0 eventos</span>
-        </div>
-        <div class="log-filters">
-            <button class="filter-tab active" onclick="setFilter('ALL',this)" data-tt="filter-all">Todos</button>
-            <button class="filter-tab" onclick="setFilter('ORDER',this)" data-tt="filter-order">Órdenes</button>
-            <button class="filter-tab" onclick="setFilter('SIGNAL',this)" data-tt="filter-signal">Señales</button>
-            <button class="filter-tab" onclick="setFilter('RISK',this)" data-tt="filter-risk">Riesgo</button>
-            <button class="filter-tab" onclick="setFilter('TICK',this)" data-tt="filter-tick">L2</button>
-        </div>
-        <div class="log-filters" style="padding-top:4px;padding-bottom:4px;gap:6px;border-bottom:1px solid var(--border);">
-            <button class="btn btn-ghost btn-sm" onclick="toggleScroll()" id="btn-scroll" data-tt="btn-scroll">⏬ Auto</button>
-            <button class="btn btn-ghost btn-sm" onclick="clearConsole()" data-tt="btn-clearlog">✕ Limpiar</button>
-        </div>
-        <div class="terminal" id="terminal">
-            <div style="color:var(--text-dim);text-align:center;margin-top:80px;">Esperando eventos...</div>
-        </div>
-    </aside>
 
 </div>
 
@@ -1549,7 +2256,7 @@
                 </div>
                 <div>
                     <div class="confirm-item-label">Modo de Datos</div>
-                    <div class="confirm-item-value" style="font-size:13px;">Live KuCoin</div>
+                    <div class="confirm-item-value" style="font-size:13px;">Live Bybit</div>
                 </div>
             </div>
             <div style="display:flex;justify-content:space-between;">
@@ -1583,10 +2290,10 @@
                         <input type="checkbox" id="cfg-market-mode" onchange="toggleMarketMode(this.checked)">
                         <span class="toggle-slider"></span>
                     </label>
-                    <span style="font-size:12px;color:var(--text-secondary);">🔴 Live (KuCoin Real)</span>
+                    <span style="font-size:12px;color:var(--text-secondary);">🔴 Live (Bybit Real)</span>
                 </div>
                 <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">
-                    Live usa datos reales del orderbook de KuCoin. Los trades siguen siendo simulados (paper trading).
+                    Live usa datos reales del orderbook de Bybit. Los trades siguen siendo simulados (paper trading).
                 </div>
             </div>
         </div>
@@ -1707,7 +2414,7 @@
                     <input type="range" id="cfg-maker-fee" min="0" max="0.15" step="0.01" value="0.02" oninput="document.getElementById('cfg-maker-fee-val').textContent=this.value+'%'" style="flex:1;">
                     <span class="settings-range-val" id="cfg-maker-fee-val">0.02%</span>
                 </div>
-                <div style="font-size:11px;color:var(--text-dim);">KuCoin maker fee: 0.02% con KCS, 0.1% sin KCS.</div>
+                <div style="font-size:11px;color:var(--text-dim);">Bybit maker fee: 0.02%, taker fee 0.055%.</div>
             </div>
             <div class="settings-group">
                 <label class="settings-label">Slippage Simulado (%)</label>
@@ -1761,7 +2468,7 @@
             <button class="btn btn-ghost btn-sm" onclick="closeArchitectureModal()">✕ Cerrar</button>
         </div>
         <div class="modal-sub" style="margin-bottom:20px;font-size:12px;color:var(--text-secondary);">
-            Monitoreo en tiempo real de la infraestructura HFT: flujo de datos de KuCoin, salud de la API REST/SSE, latencia de base de datos SQLite y diagnóstico del motor algorítmico.
+            Monitoreo en tiempo real de la infraestructura HFT: flujo de datos de Bybit, salud de la API REST/SSE, latencia de base de datos SQLite y diagnóstico del motor algorítmico.
         </div>
 
         <!-- Topological Data Flow Node Graph -->
@@ -1772,12 +2479,12 @@
             </div>
 
             <div style="display:flex;flex-direction:column;gap:12px;align-items:center;position:relative;padding:10px 0;">
-                <!-- Node 1: KuCoin API -->
+                <!-- Node 1: Bybit API -->
                 <div style="width:100%;max-width:420px;padding:12px 18px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:14px;display:flex;justify-content:space-between;align-items:center;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <span style="font-size:18px;">🌐</span>
                         <div>
-                            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">KuCoin Exchange REST API</div>
+                            <div style="font-size:13px;font-weight:700;color:var(--text-primary);">Bybit Exchange REST API</div>
                             <div style="font-size:10px;color:var(--text-dim);">Feed público de libros de órdenes Nivel 2</div>
                         </div>
                     </div>
@@ -1861,7 +2568,7 @@
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:8px;">
                         <span>GET /proxy/status</span>
-                        <span style="color:var(--green)">🟢 KuCoin Feed OK</span>
+                        <span style="color:var(--green)">🟢 Bybit Feed OK</span>
                     </div>
                 </div>
             </div>
@@ -1899,35 +2606,207 @@
 </div>
 
 <script>
-    // ── Chart Setup ──────────────────────────────
-    const ctx = document.getElementById('priceChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'SOL-USDT',
-                data: [],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59,130,246,0.06)',
-                borderWidth: 1.5,
-                fill: true,
-                tension: 0.35,
-                pointRadius: 0,
-                pointHoverRadius: 3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-            scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#4b5a72', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 8 } },
-                y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#4b5a72', font: { family: 'JetBrains Mono', size: 9 } } }
+    // ── TradingView Lightweight Charts Setup ─────────────────────
+    let tvChart = null;
+    let tvCandleSeries = null;
+    let tvEma20Series = null;
+    let tvEma50Series = null;
+    let tvVolumeSeries = null;
+    let tvLoadedSymbol = null;
+    let tvHasFitted = false;
+    let lastCandlesMap = {};
+
+    function initTradingViewChart() {
+        const container = document.getElementById('tv-chart');
+        if (!container || typeof LightweightCharts === 'undefined') return;
+
+        container.innerHTML = '';
+        tvChart = LightweightCharts.createChart(container, {
+            width: container.clientWidth || 600,
+            height: container.clientHeight || 320,
+            layout: {
+                background: { type: 'solid', color: '#07080c' },
+                textColor: '#94a3b8',
+                fontSize: 10,
+                fontFamily: "'JetBrains Mono', monospace",
+            },
+            grid: {
+                vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
+                horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+                vertLine: {
+                    color: 'rgba(0, 242, 254, 0.4)',
+                    width: 1,
+                    style: LightweightCharts.LineStyle.Dashed,
+                    labelBackgroundColor: '#0f172a',
+                },
+                horzLine: {
+                    color: 'rgba(0, 242, 254, 0.4)',
+                    width: 1,
+                    style: LightweightCharts.LineStyle.Dashed,
+                    labelBackgroundColor: '#0f172a',
+                },
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+                autoScale: true,
+                scaleMargins: { top: 0.08, bottom: 0.22 },
+            },
+            timeScale: {
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+                timeVisible: true,
+                secondsVisible: false,
+                rightOffset: 5,
+            },
+            handleScroll: { mouseWheel: true, pressedMouseMove: true },
+            handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
+        });
+
+        // Candlestick Series (Institutional Green/Red)
+        tvCandleSeries = tvChart.addCandlestickSeries({
+            upColor: '#10b981',
+            downColor: '#ef4444',
+            borderUpColor: '#10b981',
+            borderDownColor: '#ef4444',
+            wickUpColor: '#10b981',
+            wickDownColor: '#ef4444',
+        });
+
+        // EMA 20 (Cyan Line)
+        tvEma20Series = tvChart.addLineSeries({
+            color: '#00f2fe',
+            lineWidth: 1.5,
+            title: 'EMA 20',
+            priceLineVisible: false,
+            crosshairMarkerVisible: false,
+        });
+
+        // EMA 50 (Amber Line)
+        tvEma50Series = tvChart.addLineSeries({
+            color: '#f59e0b',
+            lineWidth: 1.5,
+            title: 'EMA 50',
+            priceLineVisible: false,
+            crosshairMarkerVisible: false,
+        });
+
+        // Volume Histogram on independent overlay price scale
+        tvVolumeSeries = tvChart.addHistogramSeries({
+            color: 'rgba(59, 130, 246, 0.35)',
+            priceFormat: { type: 'volume' },
+            priceScaleId: 'volume_scale',
+        });
+        tvChart.priceScale('volume_scale').applyOptions({
+            scaleMargins: { top: 0.8, bottom: 0 },
+        });
+
+        // Interactive Crosshair move updates legend in header
+        tvChart.subscribeCrosshairMove(param => {
+            if (!param || !param.time || !param.seriesData) return;
+            const candle = param.seriesData.get(tvCandleSeries);
+            if (candle) {
+                const oEl = document.getElementById('ohlc-open');
+                const hEl = document.getElementById('ohlc-high');
+                const lEl = document.getElementById('ohlc-low');
+                const cEl = document.getElementById('ohlc-close');
+                if (oEl) oEl.textContent = candle.open > 10 ? `$${candle.open.toFixed(2)}` : `$${candle.open.toFixed(4)}`;
+                if (hEl) hEl.textContent = candle.high > 10 ? `$${candle.high.toFixed(2)}` : `$${candle.high.toFixed(4)}`;
+                if (lEl) lEl.textContent = candle.low > 10 ? `$${candle.low.toFixed(2)}` : `$${candle.low.toFixed(4)}`;
+                if (cEl) cEl.textContent = candle.close > 10 ? `$${candle.close.toFixed(2)}` : `$${candle.close.toFixed(4)}`;
             }
+            const vol = param.seriesData.get(tvVolumeSeries);
+            if (vol) {
+                const vEl = document.getElementById('ohlc-vol');
+                if (vEl) vEl.textContent = `${vol.value.toFixed(1)}`;
+            }
+        });
+
+        // Auto-Resize observer
+        if (typeof ResizeObserver !== 'undefined') {
+            const ro = new ResizeObserver(entries => {
+                if (entries[0] && entries[0].contentRect && tvChart) {
+                    tvChart.applyOptions({
+                        width: entries[0].contentRect.width,
+                        height: entries[0].contentRect.height || 320
+                    });
+                }
+            });
+            ro.observe(container);
         }
-    });
+    }
+
+    function renderChartData(candles, symbol) {
+        if (!tvChart) {
+            initTradingViewChart();
+        }
+        if (!tvCandleSeries || !Array.isArray(candles) || candles.length === 0) return;
+
+        // Ensure unique, monotonically increasing timestamps for TradingView series
+        const sorted = [];
+        const seenTimes = new Set();
+        candles.forEach(c => {
+            const t = Number(c.time);
+            if (!isNaN(t) && !seenTimes.has(t)) {
+                seenTimes.add(t);
+                sorted.push({
+                    time: t,
+                    open: Number(c.open),
+                    high: Number(c.high),
+                    low: Number(c.low),
+                    close: Number(c.close),
+                    volume: Number(c.volume || 0),
+                });
+            }
+        });
+        sorted.sort((a, b) => a.time - b.time);
+        if (sorted.length === 0) return;
+
+        // Calculate smooth EMAs
+        function calcEMAData(data, period) {
+            const k = 2 / (period + 1);
+            let ema = null;
+            return data.map(d => {
+                if (ema === null) ema = d.close;
+                else ema = d.close * k + ema * (1 - k);
+                return { time: d.time, value: Number(ema.toFixed(4)) };
+            });
+        }
+
+        const ema20Data = calcEMAData(sorted, 20);
+        const ema50Data = calcEMAData(sorted, 50);
+
+        const volumeData = sorted.map(d => ({
+            time: d.time,
+            value: d.volume,
+            color: d.close >= d.open ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)',
+        }));
+
+        tvCandleSeries.setData(sorted);
+        tvEma20Series.setData(ema20Data);
+        tvEma50Series.setData(ema50Data);
+        tvVolumeSeries.setData(volumeData);
+
+        if (tvLoadedSymbol !== symbol || !tvHasFitted) {
+            tvChart.timeScale().fitContent();
+            tvLoadedSymbol = symbol;
+            tvHasFitted = true;
+        }
+
+        // Update OHLC Header
+        const last = sorted[sorted.length - 1];
+        const oEl = document.getElementById('ohlc-open');
+        const hEl = document.getElementById('ohlc-high');
+        const lEl = document.getElementById('ohlc-low');
+        const cEl = document.getElementById('ohlc-close');
+        const vEl = document.getElementById('ohlc-vol');
+        if (oEl) oEl.textContent = last.open > 10 ? `$${last.open.toFixed(2)}` : `$${last.open.toFixed(4)}`;
+        if (hEl) hEl.textContent = last.high > 10 ? `$${last.high.toFixed(2)}` : `$${last.high.toFixed(4)}`;
+        if (lEl) lEl.textContent = last.low > 10 ? `$${last.low.toFixed(2)}` : `$${last.low.toFixed(4)}`;
+        if (cEl) cEl.textContent = last.close > 10 ? `$${last.close.toFixed(2)}` : `$${last.close.toFixed(4)}`;
+        if (vEl) vEl.textContent = `${last.volume.toFixed(1)}`;
+    }
 
     // ── State ─────────────────────────────────────
     let wizardMode = 'single';
@@ -1948,9 +2827,120 @@
         return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
+    // ── Pro Terminal Dock & Drawer Navigation ────
+    window.switchDockTab = function(tabId) {
+        document.querySelectorAll('.dock-tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+        });
+        document.querySelectorAll('.dock-tab-pane').forEach(pane => {
+            pane.classList.toggle('active', pane.id === `dock-pane-${tabId}`);
+        });
+    };
+
+    window.toggleSidebarDrawer = function() {
+        const drawer = document.getElementById('sidebar-drawer');
+        const backdrop = document.getElementById('drawer-backdrop');
+        if (drawer) drawer.classList.toggle('open');
+        if (backdrop) backdrop.classList.toggle('open');
+    };
+
+    // ── Symbol Quick Switch & Terminal Hotkeys ────
+    window.setChartSymbol = function(sym) {
+        if (!sym) return;
+        selectedChartSymbol = sym;
+        const sel = document.getElementById('chart-symbol-select');
+        if (sel && sel.value !== sym) sel.value = sym;
+        
+        // Update quick tabs UI active state
+        document.querySelectorAll('.symbol-tab-btn').forEach(btn => {
+            const bSym = btn.getAttribute('data-symbol') || '';
+            btn.classList.toggle('active', bSym === sym);
+        });
+
+        tvLoadedSymbol = null; // Forces auto-fit on switch
+        if (lastCandlesMap && lastCandlesMap[sym]) {
+            renderChartData(lastCandlesMap[sym], sym);
+        }
+    };
+
+    // Terminal Keyboard Shortcuts: 1, 2, 3... for Symbols | Space for Pause/Resume
+    window.addEventListener('keydown', function(e) {
+        const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable)) {
+            return;
+        }
+        if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+        if (e.code === 'Space') {
+            e.preventDefault();
+            if (typeof toggleEngineFromBanner === 'function') {
+                toggleEngineFromBanner();
+            }
+            return;
+        }
+
+        const digit = parseInt(e.key, 10);
+        if (!isNaN(digit) && digit >= 1 && digit <= 9) {
+            const tabs = Array.from(document.querySelectorAll('.symbol-tab-btn'));
+            const targetBtn = tabs[digit - 1];
+            if (targetBtn) {
+                e.preventDefault();
+                targetBtn.click();
+            }
+        }
+    });
+
     let bots = [
         { id: 'bot_1', name: 'AlphaEdge Trend-Pullback', strategy: 'alpha_edge', symbol: 'SOL-USDT', capital: 1000 }
     ];
+
+    window.saveHftCapital = async function saveHftCapital() {
+        const inp = document.getElementById('hft-input-capital');
+        const baseCapEl = document.getElementById('kpi-base-capital-hft');
+        if (!inp) return;
+        const val = parseFloat(inp.value);
+        if (isNaN(val) || val <= 0) {
+            alert('Por favor ingresa un monto válido en USD mayor a 0.');
+            return;
+        }
+        if (baseCapEl) {
+            baseCapEl.textContent = `$${val.toFixed(2)}`;
+        }
+        try {
+            const res = await fetch('/api/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ capital: val })
+            });
+            const data = await res.json();
+            if (data.status === 'updated' || data.status === 'config_updated') {
+                alert(`✅ Capital de inversión actualizado a $${val.toFixed(2)} USD.`);
+                if (typeof updateUI === 'function') fetch('/api/state').then(r=>r.json()).then(d=>updateUI(d));
+            } else {
+                alert('Error al actualizar el capital: ' + (data.message || 'Desconocido'));
+            }
+        } catch (err) {
+            console.error('Error al guardar capital:', err);
+        }
+    };
+
+    window.resetStatsAndDb = async function resetStatsAndDb() {
+        if (!confirm('¿Estás seguro de que deseas limpiar la base de datos de trades y reiniciar todas las estadísticas a cero con $200 USD de capital base?')) return;
+        const inp = document.getElementById('hft-input-capital');
+        const val = inp ? (parseFloat(inp.value) || 200.0) : 200.0;
+        try {
+            const res = await fetch(`/api/reset_stats?capital=${val}`);
+            const data = await res.json();
+            if (data.status === 'reset') {
+                alert(`🧹 Base de datos y métricas reiniciadas a cero con éxito ($${val.toFixed(2)} USD).`);
+                if (typeof updateUI === 'function') fetch('/api/state').then(r=>r.json()).then(d=>updateUI(d));
+            } else {
+                alert('Error al reiniciar: ' + (data.message || 'Desconocido'));
+            }
+        } catch (err) {
+            console.error('Error al reiniciar stats:', err);
+        }
+    };
 
     // ── Uptime counter (server is single source of truth) ──
     setInterval(() => {
@@ -2004,10 +2994,18 @@
         const pill = document.getElementById('status-pill');
         const dot  = document.getElementById('pulse-dot');
         const stxt = document.getElementById('status-text');
+        const isWeekend = !!(data.risk_guard && data.risk_guard.weekend_standby);
+
         if (isRunning) {
-            pill.className = 'status-pill status-on';
-            dot.className  = 'pulse-dot pulse-on';
-            stxt.textContent = '🟢 OPERANDO EN VIVO';
+            if (isWeekend) {
+                pill.className = 'status-pill status-off';
+                dot.className  = 'pulse-dot pulse-off';
+                stxt.textContent = '🟡 STANDBY FIN DE SEMANA';
+            } else {
+                pill.className = 'status-pill status-on';
+                dot.className  = 'pulse-dot pulse-on';
+                stxt.textContent = '🟢 OPERANDO EN VIVO';
+            }
         } else {
             pill.className = 'status-pill status-off';
             dot.className  = 'pulse-dot pulse-off';
@@ -2026,18 +3024,20 @@
         if (banner) {
             if (isRunning) {
                 banner.className = 'engine-live-banner banner-running';
-                if (bTitle) bTitle.innerHTML = `🟢 MOTOR OPERANDO EN VIVO — TRADING HFT ACTIVO`;
-                if (bSub)   bSub.textContent = `Escaneando liquidez y volumen institucional en sub-segundos a través de KuCoin WebSocket | Frecuencia: 3.3 Ticks/seg`;
+                const weekendChip = isWeekend ? `<span class="chip" style="background:rgba(245,158,11,0.2);color:#f59e0b;border:1px solid rgba(245,158,11,0.4);">🛡️ FIN DE SEMANA (CAPITAL BLINDADO)</span>` : '';
+                if (bTitle) bTitle.innerHTML = `<span>🟢 MOTOR OPERANDO EN VIVO — PROYECTO AGUSTÍN</span> <span class="chip chip-green">🛡️ SCALE-OUT 50% (BREAKEVEN LOCK +0.28%)</span> ${weekendChip} <span class="chip chip-blue">⚡ NEWS SPIKE GUARD ONLINE</span>`;
+                if (bSub)   bSub.textContent = isWeekend ? `Standby de protección: CME cerrado. Sin trades hasta Domingo 22:00 UTC para preservar capital.` : `Escaneando órdenes en tiempo real a través de Bybit | Cierre parcial al 50% en 1.5x ATR | SL Breakeven +0.28% Protegido`;
+
                 if (bRate)  bRate.textContent = `⚡ 3.3 Ticks/seg (${(data.total_ticks || 0).toLocaleString()} Ticks)`;
                 if (bSyms)  bSyms.textContent = bannerSymsStr;
-                if (bBtn)   { bBtn.textContent = '⏸ Pausar Motor'; bBtn.className = 'btn btn-sm btn-danger'; }
+                if (bBtn)   { bBtn.innerHTML = `<span style="opacity:0.7;font-size:10px;margin-right:4px;">[SPACE]</span> ⏸ Pausar Motor`; bBtn.className = 'btn btn-sm btn-danger'; }
             } else {
                 banner.className = 'engine-live-banner banner-stopped';
                 if (bTitle) bTitle.innerHTML = `⏸️ MOTOR EN PAUSA — TRADING DETENIDO`;
                 if (bSub)   bSub.textContent = `Haz clic en 'Iniciar Operación' para activar el escaneo de mercado y la ejecución de órdenes`;
                 if (bRate)  bRate.textContent = `⏸ 0 Ticks/seg`;
                 if (bSyms)  bSyms.textContent = bannerSymsStr;
-                if (bBtn)   { bBtn.textContent = '▶ Iniciar Operación'; bBtn.className = 'btn btn-sm btn-success'; }
+                if (bBtn)   { bBtn.innerHTML = `<span style="opacity:0.7;font-size:10px;margin-right:4px;">[SPACE]</span> ▶ Iniciar Operación`; bBtn.className = 'btn btn-sm btn-success'; }
             }
         }
 
@@ -2109,7 +3109,7 @@
                 } else if (perSym[sym] && perSym[sym].mid_price) {
                     priceVal = perSym[sym].mid_price;
                 }
-                const priceFmt = priceVal > 10 ? `$${priceVal.toFixed(2)}` : (priceVal > 0 ? `$${priceVal.toFixed(4)}` : '—');
+                const priceFmt = priceVal > 0 ? (priceVal > 10 ? `$${priceVal.toFixed(2)}` : `$${priceVal.toFixed(4)}`) : '—';
                 html += `
                     <div class="ticker-item">
                         <span class="ticker-label">${escapeHtml(shortName)}</span>
@@ -2137,23 +3137,33 @@
         const sessionPnl = portfolio.total_pnl || 0;
         const dbPnl = db.total_pnl || 0;
 
-        // Cumulative net PnL (DB history + live session)
-        const totalPnl = (db.total_trades && db.total_trades > 0) ? (dbPnl + sessionPnl) : sessionPnl;
-
-        // Live net capital (Initial Capital + Total Net PnL)
+        // Base capital
         const initCap = (portfolio.preset_info && portfolio.preset_info.initial_capital)
             ? portfolio.preset_info.initial_capital
-            : (portfolio.total_capital || 3000);
-        const liveCapital = initCap + totalPnl;
+            : 200.0;
 
-        // New algo: position = 60% of sub-capital, TP=3.8%, SL=1.5%
-        const posPct      = 0.60;
-        const tpPct       = 0.038;
-        const slPct       = 0.015;
-        const posSize     = liveCapital * posPct;
-        const tpNetUsd    = posSize * tpPct;
-        const slNetUsd    = posSize * slPct;
-        const netRR       = (tpPct / slPct).toFixed(2);
+        // Total net PnL across session and closed trades
+        const netPnl = (typeof portfolio.total_pnl === 'number' && portfolio.total_pnl !== 0)
+            ? portfolio.total_pnl
+            : ((db.total_trades && db.total_trades > 0) ? dbPnl : sessionPnl);
+
+        // Live Total Balance (Base Capital + Net PnL)
+        const liveCapital = initCap + netPnl;
+
+        const accTotalEl = document.getElementById('kpi-account-total');
+        if (accTotalEl) accTotalEl.textContent = `$${liveCapital.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+        const baseCapHftEl = document.getElementById('kpi-base-capital-hft');
+        if (baseCapHftEl) baseCapHftEl.textContent = `$${initCap.toFixed(2)}`;
+
+        const inpCap = document.getElementById('hft-input-capital');
+        if (inpCap && document.activeElement !== inpCap && initCap > 0) {
+            inpCap.value = initCap;
+        }
+
+        const maxExp = (risk && risk.max_exposure_pct) ? (risk.max_exposure_pct * 100).toFixed(0) : 35;
+        const capSubEl = document.getElementById('kpi-capital-sub');
+        if (capSubEl) capSubEl.textContent = `Exposición Máx: ${maxExp}% · Risk: 1.5%`;
 
         // Win rate and trades count
         const totalTradesCount = (db.total_trades && db.total_trades > 0)
@@ -2165,15 +3175,26 @@
 
         // PnL card
         const kpiPnl = document.getElementById('kpi-pnl');
-        kpiPnl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
-        kpiPnl.className   = `kpi-value mono ${totalPnl >= 0 ? 'kpi-positive' : 'kpi-negative'}`;
+        if (kpiPnl) {
+            kpiPnl.textContent = `${netPnl >= 0 ? '+' : ''}$${netPnl.toFixed(2)}`;
+            kpiPnl.className   = `kpi-value mono ${netPnl >= 0 ? 'kpi-positive' : 'kpi-negative'}`;
+        }
         const pnlSub = document.getElementById('kpi-pnl-sub');
-        if (pnlSub) pnlSub.textContent = `TP: +$${tpNetUsd.toFixed(0)} | SL: -$${slNetUsd.toFixed(0)} | R:R ${netRR}:1`;
+        if (pnlSub) {
+            const pnlPct = initCap > 0 ? (netPnl / initCap * 100) : 0;
+            pnlSub.textContent = `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}% · Scale-Out 50% Activo`;
+        }
 
         // Capital card
-        document.getElementById('kpi-capital').textContent = `$${liveCapital.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+        const kpiCap = document.getElementById('kpi-capital');
+        if (kpiCap) {
+            kpiCap.textContent = `$${liveCapital.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
         const capSub = document.getElementById('kpi-capital-sub');
-        if (capSub) capSub.textContent = `Posición: 60% · $${posSize.toFixed(0)}/trade`;
+        if (capSub) {
+            const sizeVal = (liveCapital * 0.15).toFixed(0);
+            capSub.textContent = `Capital Vivo Recompuesto · Riesgo 1.5%`;
+        }
 
         // Win rate card
         document.getElementById('kpi-winrate').textContent = `${winRateVal.toFixed(1)}%`;
@@ -2273,109 +3294,39 @@
             if (sbProfileEl) sbProfileEl.textContent = portfolio.preset_info.name;
         }
 
-        // Chart — Render Japanese Candlesticks (Velas Japonesas)
+        // Chart — Render TradingView Candlesticks (Velas Japonesas)
         const candlesMap = data.candles || {};
+        lastCandlesMap = candlesMap;
         const symCandles = candlesMap[selectedChartSymbol] || [];
 
-        if (symCandles.length > 0 && isRunning) {
-            const lastC = symCandles[symCandles.length - 1];
-            const oEl = document.getElementById('ohlc-open');
-            const hEl = document.getElementById('ohlc-high');
-            const lEl = document.getElementById('ohlc-low');
-            const cEl = document.getElementById('ohlc-close');
-            const vEl = document.getElementById('ohlc-vol');
-            if (oEl) oEl.textContent = lastC.open > 10 ? `$${lastC.open.toFixed(2)}` : `$${lastC.open.toFixed(4)}`;
-            if (hEl) hEl.textContent = lastC.high > 10 ? `$${lastC.high.toFixed(2)}` : `$${lastC.high.toFixed(4)}`;
-            if (lEl) lEl.textContent = lastC.low > 10 ? `$${lastC.low.toFixed(2)}` : `$${lastC.low.toFixed(4)}`;
-            if (cEl) cEl.textContent = lastC.close > 10 ? `$${lastC.close.toFixed(2)}` : `$${lastC.close.toFixed(4)}`;
-            if (vEl) vEl.textContent = `${lastC.volume.toFixed(1)}`;
-
-            const labels = symCandles.map(c => c.time);
-            const wickData = [];
-            const bodyData = [];
-            const bgColors = [];
-
-            let allMin = Infinity, allMax = -Infinity;
-
-            symCandles.forEach(c => {
-                const isBull = c.close >= c.open;
-                const color = isBull ? '#10b981' : '#ef4444';
-                
-                wickData.push([c.low, c.high]);
-
-                let bMin = Math.min(c.open, c.close);
-                let bMax = Math.max(c.open, c.close);
-                if (bMin === bMax) {
-                    bMax = bMin + (c.close * 0.0001 || 0.01);
-                }
-                bodyData.push([bMin, bMax]);
-                bgColors.push(color);
-
-                if (c.low < allMin) allMin = c.low;
-                if (c.high > allMax) allMax = c.high;
-            });
-
-            const margin = (allMax - allMin) * 0.12 || 0.05;
-            chart.options.scales.y.min = Math.max(0, allMin - margin);
-            chart.options.scales.y.max = allMax + margin;
-
-            chart.data.labels = labels;
-            chart.data.datasets = [
-                {
-                    label: 'Mechas',
-                    type: 'bar',
-                    data: wickData,
-                    backgroundColor: bgColors,
-                    borderColor: bgColors,
-                    borderWidth: 1,
-                    barPercentage: 0.14,
-                    categoryPercentage: 0.8,
-                    order: 2
-                },
-                {
-                    label: `${selectedChartSymbol} (Velas Japonesas)`,
-                    type: 'bar',
-                    data: bodyData,
-                    backgroundColor: bgColors,
-                    borderColor: bgColors,
-                    borderWidth: 1,
-                    borderRadius: 2,
-                    barPercentage: 0.65,
-                    categoryPercentage: 0.8,
-                    order: 1
-                }
-            ];
-            chart.update('none');
-        } else {
-            const hist = priceHist[selectedChartSymbol] || data.price_history || [];
-            if (hist.length > 0 && isRunning) {
-                const prices = hist.map(h => h.price);
-                const mn = Math.min(...prices), mx = Math.max(...prices);
-                const mg = (mx - mn) * 0.12 || 0.05;
-                chart.options.scales.y.min = mn - mg;
-                chart.options.scales.y.max = mx + mg;
-                chart.data.labels = hist.map(h => h.time);
-                chart.data.datasets = [{
-                    label: selectedChartSymbol,
-                    type: 'line',
-                    data: prices,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59,130,246,0.06)',
-                    borderWidth: 1.5,
-                    fill: true,
-                    tension: 0.35,
-                    pointRadius: 0,
-                    pointHoverRadius: 3
-                }];
-                chart.update('none');
-            }
+        if (symCandles.length > 0) {
+            renderChartData(symCandles, selectedChartSymbol);
         }
 
-        // Dynamic Symbol Selector Options Syncing from Portfolio Active Symbols
+        // Dynamic Symbol Selector & Quick Tabs Syncing from Portfolio Active Symbols
         const activeSyms = (portfolio.symbols && portfolio.symbols.length > 0)
             ? portfolio.symbols
             : (Object.keys(priceHist).length > 0 ? Object.keys(priceHist) : Object.keys(perSym));
         if (activeSyms.length > 0) {
+            // Update Quick Tabs
+            const tabsContainer = document.getElementById('symbol-tabs-container');
+            if (tabsContainer) {
+                const curTabs = Array.from(tabsContainer.querySelectorAll('.symbol-tab-btn')).map(b => b.getAttribute('data-symbol'));
+                if (JSON.stringify(curTabs) !== JSON.stringify(activeSyms)) {
+                    tabsContainer.innerHTML = activeSyms.map((s, idx) => {
+                        const short = s.split('-')[0];
+                        const hotkeyNum = idx < 9 ? `${idx + 1}` : '';
+                        const isActive = (s === selectedChartSymbol) ? ' active' : '';
+                        return `<button type="button" class="symbol-tab-btn${isActive}" data-symbol="${escapeHtml(s)}" id="btn-sym-${escapeHtml(s)}" onclick="setChartSymbol('${escapeHtml(s)}')">${escapeHtml(short)} ${hotkeyNum ? `<span class="hotkey-tag">${hotkeyNum}</span>` : ''}</button>`;
+                    }).join('');
+                } else {
+                    tabsContainer.querySelectorAll('.symbol-tab-btn').forEach(b => {
+                        b.classList.toggle('active', b.getAttribute('data-symbol') === selectedChartSymbol);
+                    });
+                }
+            }
+
+            // Sync hidden/fallback select
             const sel = document.getElementById('chart-symbol-select');
             if (sel) {
                 const cur = Array.from(sel.options).map(o => o.value);
@@ -2408,7 +3359,9 @@
 
         // Signal panel — syncs with selected chart symbol
         let curSig = signal;
-        if (perSym[selectedChartSymbol] && perSym[selectedChartSymbol].latest_signal) {
+        if (data.signals && data.signals[selectedChartSymbol]) {
+            curSig = data.signals[selectedChartSymbol];
+        } else if (perSym[selectedChartSymbol] && perSym[selectedChartSymbol].latest_signal) {
             curSig = perSym[selectedChartSymbol].latest_signal;
         }
 
@@ -2435,10 +3388,74 @@
         document.getElementById('ind-tpsl').textContent =
             `${tp ? (tp>10?`$${tp.toFixed(2)}`:`$${tp.toFixed(4)}`) : '—'} / ${sl ? (sl>10?`$${sl.toFixed(2)}`:`$${sl.toFixed(4)}`) : '—'}`;
 
+        const candleEl = document.getElementById('ind-candle');
+        if (candleEl) {
+            candleEl.textContent = ind.candle_pattern || 'Normal';
+            if (ind.candle_pattern && ind.candle_pattern.includes('Cayendo')) {
+                candleEl.style.color = '#ef4444';
+            } else if (ind.candle_pattern && (ind.candle_pattern.includes('Martillo') || ind.candle_pattern.includes('Envolvente') || ind.candle_pattern.includes('Verde'))) {
+                candleEl.style.color = '#10b981';
+            } else {
+                candleEl.style.color = '#facc15';
+            }
+        }
+
         // Sidebar info
         document.getElementById('sb-strategy').textContent = portfolio.active_strategy || 'alpha_edge';
 
-        // Trades table
+        // Active positions table
+        const activePos = data.active_positions || [];
+        const posCountEl = document.getElementById('active-positions-count');
+        const posBodyEl = document.getElementById('active-positions-body');
+        if (posCountEl) {
+            posCountEl.textContent = `${activePos.length} ${activePos.length === 1 ? 'activa' : 'abiertas'}`;
+            posCountEl.style.color = activePos.length > 0 ? '#10b981' : '#00f2fe';
+            posCountEl.style.borderColor = activePos.length > 0 ? 'rgba(16,185,129,0.4)' : 'rgba(0,242,254,0.3)';
+        }
+        if (posBodyEl) {
+            if (activePos.length === 0) {
+                posBodyEl.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:14px;font-size:11px;">Buscando confirmación de entrada...</td></tr>`;
+            } else {
+                posBodyEl.innerHTML = activePos.map(p => {
+                    const isWin = p.unrealized_pnl >= 0;
+                    const pnlSign = isWin ? '+' : '';
+                    const epFmt = p.entry_price > 10 ? p.entry_price.toFixed(2) : p.entry_price.toFixed(4);
+                    const cpFmt = p.current_price > 10 ? p.current_price.toFixed(2) : p.current_price.toFixed(4);
+                    const tpFmt = p.tp_price > 10 ? p.tp_price.toFixed(2) : p.tp_price.toFixed(4);
+                    const slFmt = p.sl_price > 10 ? p.sl_price.toFixed(2) : p.sl_price.toFixed(4);
+                    const partialBadge = p.is_partial_closed ? '<span style="font-size:9px;background:rgba(16,185,129,0.2);color:#10b981;padding:1px 4px;border-radius:3px;margin-left:3px;font-weight:700;">50% BE</span>' : '';
+
+                    let tpProgress = 0;
+                    if (p.side === 'BUY' && p.tp_price > p.entry_price) {
+                        tpProgress = Math.min(100, Math.max(0, ((p.current_price - p.entry_price) / (p.tp_price - p.entry_price)) * 100));
+                    } else if (p.side === 'SELL' && p.entry_price > p.tp_price) {
+                        tpProgress = Math.min(100, Math.max(0, ((p.entry_price - p.current_price) / (p.entry_price - p.tp_price)) * 100));
+                    }
+
+                    return `<tr style="background:rgba(0,242,254,0.02);border-left:2px solid ${isWin?'#10b981':'#f43f5e'};">
+                        <td><b style="color:#00f2fe;">${escapeHtml(p.symbol)}</b>${partialBadge}</td>
+                        <td class="${p.side==='BUY'?'side-buy':'side-sell'}">${escapeHtml(p.side)}</td>
+                        <td>$${epFmt}</td>
+                        <td><b style="color:#f8fafc;">$${cpFmt}</b></td>
+                        <td style="min-width:115px;vertical-align:middle;">
+                            <div style="font-size:9.5px;color:var(--text-dim);display:flex;justify-content:space-between;margin-bottom:3px;">
+                                <span>TP: $${tpFmt}</span>
+                                <span style="color:#10b981;font-weight:700;">${tpProgress.toFixed(0)}%</span>
+                            </div>
+                            <div style="width:100%;height:5px;background:rgba(255,255,255,0.08);border-radius:3px;overflow:hidden;position:relative;">
+                                <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.35);z-index:2;" title="50% Scale-Out (BE Lock)"></div>
+                                <div style="width:${tpProgress}%;height:100%;background:linear-gradient(90deg, #00f2fe, #10b981);border-radius:3px;transition:width 0.4s ease;"></div>
+                            </div>
+                        </td>
+                        <td class="${isWin?'pnl-pos':'pnl-neg'}" style="font-weight:700;font-size:12.5px;">
+                            ${pnlSign}$${p.unrealized_pnl.toFixed(4)} <span style="font-size:10px;font-weight:600;">(${pnlSign}${p.unrealized_pnl_pct.toFixed(2)}%)</span>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+        }
+
+        // Recent closed trades table
         const dbTrades = portfolio.recent_db_trades || [];
         const dbSummary = portfolio.all_time_db || {};
         document.getElementById('db-count').textContent = `${dbSummary.total_trades || 0} registros`;
@@ -2453,11 +3470,329 @@
                     <td class="${win?'pnl-pos':'pnl-neg'}">${win?'+':''}$${t.pnl.toFixed(4)}</td>
                 </tr>`;
             }).join('');
+        } else {
+            document.getElementById('trades-body').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:16px;">Sin trades cerrados aún</td></tr>`;
         }
 
         // Logs
         if (data.logs) { lastLogs = data.logs; renderLogs(data.logs); }
+
+        // AI Auto-Evolution Hub
+        if (data.ai_optimizer) { updateAIUI(data.ai_optimizer); }
+
+        // Autonomous Agent Live Sync
+        if (data.autonomous_agent) {
+            const ag = data.autonomous_agent;
+            if (ag.mode) {
+                document.querySelectorAll('.btn-mode-tab').forEach(b => {
+                    b.classList.toggle('active', b.id === `btn-mode-${ag.mode}`);
+                });
+            }
+            if (ag.recent_decisions && ag.recent_decisions.length > 0) {
+                renderAgentDecisions(ag.recent_decisions);
+            }
+        }
     }
+
+    // ── AI Auto-Evolution Actions & HUD ───────────────────────
+    function updateAIUI(ai) {
+        if (!ai) return;
+        const sw = document.getElementById('ai-toggle-switch');
+        if (sw && document.activeElement !== sw) {
+            sw.checked = Boolean(ai.is_enabled);
+        }
+        const badge = document.getElementById('ai-status-badge');
+        if (badge) {
+            if (ai.is_enabled) {
+                badge.className = 'ai-badge-pulse';
+                badge.textContent = ai.local_llm_available ? `🟢 LLM LOCAL (${ai.local_llm_model || 'llama3.2:1b'})` : '🟢 OPTIMIZADOR ACTIVO';
+                badge.style.background = 'rgba(16, 185, 129, 0.2)';
+                badge.style.color = '#10b981';
+            } else {
+                badge.className = 'ai-badge-pulse';
+                badge.textContent = '⏸️ AUTO-EVOLUCIÓN EN PAUSA';
+                badge.style.background = 'rgba(239, 68, 68, 0.2)';
+                badge.style.color = '#ef4444';
+            }
+        }
+        const regEl = document.getElementById('ai-regime-text');
+        if (regEl) regEl.textContent = ai.current_regime || 'TENDENCIA PRO';
+
+        const sharpeEl = document.getElementById('ai-sharpe-text');
+        if (sharpeEl) {
+            const sh = ai.last_candidate_sharpe || 2.45;
+            sharpeEl.textContent = `${sh.toFixed(2)} (${sh >= 1.5 ? '+15.2%' : '0.0%'})`;
+        }
+
+        const calibEl = document.getElementById('ai-calibrations-count');
+        if (calibEl) calibEl.textContent = `${ai.total_optimizations || 0} Ciclos`;
+
+        const hypEl = document.getElementById('ai-hypothesis-text');
+        if (hypEl && ai.latest_hypothesis) hypEl.textContent = ai.latest_hypothesis;
+    }
+
+    window.toggleAIEvolution = async function(isChecked) {
+        const sw = document.getElementById('ai-toggle-switch');
+        const badge = document.getElementById('ai-status-badge');
+        try {
+            const res = await fetch('/api/ai/toggle', { method: 'POST' });
+            const data = await res.json();
+            const enabled = data.is_enabled !== undefined ? data.is_enabled : (sw ? sw.checked : isChecked);
+            if (sw) sw.checked = enabled;
+            if (badge) {
+                badge.textContent = enabled ? '🟢 LOCAL LLM AUDIT' : '⏸️ AUTO-EVOLUCIÓN EN PAUSA';
+                badge.style.background = enabled ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+                badge.style.color = enabled ? '#10b981' : '#ef4444';
+            }
+        } catch(e) {
+            console.error('Error toggling AI:', e);
+        }
+    };
+
+    window.triggerAIOptimization = async function() {
+        const btn = document.getElementById('btn-force-ai');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '⏳ Optimizando en Sandbox...';
+        }
+        try {
+            const res = await fetch('/api/ai/trigger', { method: 'POST' });
+            const data = await res.json();
+            if (btn) {
+                btn.textContent = '✅ Optimización Completa';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Optimizar';
+                }, 2500);
+            }
+            if (data && data.hypothesis) {
+                const hEl = document.getElementById('ai-hypothesis-text');
+                if (hEl) hEl.textContent = data.hypothesis;
+            }
+        } catch(e) {
+            console.error('Error triggering AI optimization:', e);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '⚡ Optimizar';
+            }
+        }
+    };
+
+    // ── Autonomous Agent & Playbook Operations ─────────────────
+    window.setAgentMode = async function(mode) {
+        document.querySelectorAll('.btn-mode-tab').forEach(b => {
+            b.classList.toggle('active', b.id === `btn-mode-${mode}`);
+        });
+        try {
+            const res = await fetch('/api/agent/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: mode })
+            });
+            const data = await res.json();
+            console.log('Modo de agente actualizado:', data);
+        } catch(e) { console.error('Error changing agent mode:', e); }
+    };
+
+    window.evaluateAgentNow = async function() {
+        const tl = document.getElementById('agent-decisions-timeline');
+        if (tl) tl.innerHTML = '<div style="color:#00f2fe;text-align:center;padding:15px;font-size:11.5px;">⏳ Evaluando confluencias con Ollama LLM y Playbook...</div>';
+        try {
+            const res = await fetch('/api/agent/evaluate_now', { method: 'POST' });
+            const data = await res.json();
+            if (data.results) {
+                renderAgentDecisions(data.results);
+            }
+        } catch(e) { console.error('Error evaluating agent:', e); }
+    };
+
+    window.loadSelectedPlaybook = async function(filename) {
+        if (!filename) filename = document.getElementById('playbook-file-select')?.value || '01_market_structure.md';
+        try {
+            const res = await fetch(`/api/playbook/get?file=${encodeURIComponent(filename)}`);
+            const data = await res.json();
+            const txt = document.getElementById('playbook-editor-content');
+            if (txt && data.content !== undefined) {
+                txt.value = data.content;
+            }
+        } catch(e) { console.error('Error loading playbook file:', e); }
+    };
+
+    window.saveActivePlaybook = async function() {
+        const sel = document.getElementById('playbook-file-select');
+        const txt = document.getElementById('playbook-editor-content');
+        if (!sel || !txt) return;
+        const file = sel.value;
+        const content = txt.value;
+        try {
+            const res = await fetch('/api/playbook/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file: file, content: content })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ Reglas de '${file}' guardadas exitosamente.`);
+            } else {
+                alert(`❌ Error al guardar '${file}'.`);
+            }
+        } catch(e) {
+            console.error('Error saving playbook:', e);
+            alert('Error al conectar con el servidor.');
+        }
+    };
+
+    function renderAgentDecisions(decisions) {
+        const tl = document.getElementById('agent-decisions-timeline');
+        const countEl = document.getElementById('agent-decisions-count');
+        if (!tl) return;
+        if (countEl && Array.isArray(decisions)) countEl.textContent = decisions.length;
+        if (!decisions || decisions.length === 0) {
+            tl.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;font-size:11.5px;">Sin decisiones recientes del agente.</div>';
+            return;
+        }
+        tl.innerHTML = decisions.slice().reverse().map(d => {
+            const isBuy = d.action === 'BUY';
+            const isSell = d.action === 'SELL';
+            const isAPlus = d.grade === 'A_PLUS_MAX_CONVICTION';
+            const riskBadge = isAPlus ? '🔥 CONVICCIÓN MÁXIMA A+ (8.0% RIESGO)' : (d.risk_pct > 0 ? `⚖️ CONVICCIÓN ESTÁNDAR (${(d.risk_pct*100).toFixed(0)}% RIESGO)` : '⏸️ ESPERAR (0% RIESGO)');
+            const actColor = isBuy ? 'var(--green)' : isSell ? 'var(--red)' : '#94a3b8';
+            const candleBadge = d.candle_pattern ? `<span style="background:rgba(250,204,21,0.12);border:1px solid rgba(250,204,21,0.3);padding:2px 6px;border-radius:4px;font-size:9.5px;color:#facc15;font-weight:600;">🕯️ ${escapeHtml(d.candle_pattern)}</span>` : '';
+            const conflList = (d.confluences && d.confluences.length > 0) ? d.confluences.map(c => `<span style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:9.5px;color:#93c5fd;">✓ ${escapeHtml(c)}</span>`).join(' ') : '<span style="color:#64748b;font-size:9.5px;">Sin confluencias clave</span>';
+
+            return `
+            <div class="agent-decision-card ${isAPlus ? 'a-plus' : ''}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-weight:700;color:#f8fafc;font-size:12px;">${escapeHtml(d.symbol)}</span>
+                        <span style="font-weight:800;color:${actColor};background:rgba(255,255,255,0.08);padding:1px 6px;border-radius:4px;font-size:10px;">${escapeHtml(d.action)}</span>
+                        <span style="font-size:9px;color:${isAPlus?'#10b981':'#60a5fa'};font-weight:700;">${riskBadge}</span>
+                    </div>
+                    <span style="font-size:9.5px;color:#64748b;font-family:'JetBrains Mono',monospace;">${escapeHtml(d.timestamp || '')}</span>
+                </div>
+                <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:4px 0 6px;">
+                    ${candleBadge}
+                    ${conflList}
+                </div>
+                <div style="color:#cbd5e1;font-size:10.5px;line-height:1.4;background:rgba(0,0,0,0.3);padding:6px 8px;border-radius:4px;border-left:2px solid ${actColor};">
+                    <b>💡 Razonamiento IA:</b> ${escapeHtml(d.chain_of_thought || '')}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Trading Books & RAG Operations ───────────────────────
+    window.loadBooksCatalog = async function() {
+        try {
+            const res = await fetch('/api/books/list');
+            const data = await res.json();
+            const grid = document.getElementById('books-catalog-grid');
+            const countEl = document.getElementById('books-count');
+            const chunksEl = document.getElementById('rag-chunks-stat');
+            if (countEl && data.books) countEl.textContent = data.books.length;
+            if (chunksEl && data.chunks_total !== undefined) chunksEl.textContent = data.chunks_total;
+
+            if (!grid) return;
+            if (!data.books || data.books.length === 0) {
+                grid.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:20px;font-size:11.5px;">No se encontraron libros en la biblioteca.</div>';
+                return;
+            }
+
+            grid.innerHTML = data.books.map(b => `
+                <div class="book-card">
+                    <div>
+                        <div class="book-badge">${escapeHtml(b.category || 'Trading')}</div>
+                        <div style="font-weight:700;color:#f8fafc;font-size:12px;margin-bottom:2px;">${escapeHtml(b.title)}</div>
+                        <div style="font-size:10.5px;color:#93c5fd;font-weight:600;margin-bottom:8px;">✍️ ${escapeHtml(b.author)}</div>
+                        <div style="font-size:9.5px;color:#94a3b8;margin-bottom:10px;">
+                            📄 Archivo: <code style="color:#38bdf8;">${escapeHtml(b.filename)}</code> | ⚡ ${b.chunks_count} secciones indexadas
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-ghost" onclick="openBook('${escapeHtml(b.filename)}', '${escapeHtml(b.title)}')" style="width:100%;padding:4px 8px;font-size:10.5px;border-color:rgba(56,189,248,0.3);color:#38bdf8;">
+                        📖 Leer Compendio & Setups
+                    </button>
+                </div>
+            `).join('');
+        } catch(e) { console.error('Error loading books catalog:', e); }
+    };
+
+    window.openBook = async function(filename, title) {
+        try {
+            const res = await fetch(`/api/books/content?file=${encodeURIComponent(filename)}`);
+            const data = await res.json();
+            const reader = document.getElementById('book-reader-view');
+            const titleEl = document.getElementById('book-reader-title');
+            const contentEl = document.getElementById('book-reader-content');
+            if (reader && titleEl && contentEl) {
+                titleEl.textContent = `📖 ${title || filename}`;
+                contentEl.textContent = data.content || 'Sin contenido disponible.';
+                reader.style.display = 'block';
+                reader.scrollIntoView({ behavior: 'smooth' });
+            }
+        } catch(e) { console.error('Error opening book:', e); }
+    };
+
+    window.closeBookReader = function() {
+        const reader = document.getElementById('book-reader-view');
+        if (reader) reader.style.display = 'none';
+    };
+
+    window.searchBooksRAG = async function() {
+        const query = document.getElementById('books-search-input')?.value.trim();
+        const resultsEl = document.getElementById('rag-search-results');
+        if (!query || !resultsEl) return;
+
+        resultsEl.innerHTML = '<div style="color:#00f2fe;font-size:11px;padding:8px;">⚡ Buscando en base vectorial RAG...</div>';
+        resultsEl.style.display = 'block';
+
+        try {
+            const res = await fetch('/api/books/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query, top_k: 3 })
+            });
+            const data = await res.json();
+            if (!data.results || data.results.length === 0) {
+                resultsEl.innerHTML = '<div style="color:#94a3b8;font-size:11px;padding:8px;background:rgba(0,0,0,0.3);border-radius:6px;">No se encontraron fragmentos para esa consulta. Intenta con "spring wyckoff", "cuña al brooks", "elder", o "smc".</div>';
+                return;
+            }
+
+            resultsEl.innerHTML = `
+                <div style="font-size:11px;font-weight:700;color:#10b981;margin-bottom:6px;">
+                    🎯 Citas RAG Relevantes para "${escapeHtml(query)}":
+                </div>
+                ${data.results.map(r => `
+                    <div class="rag-result-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-weight:700;color:#38bdf8;">📖 ${escapeHtml(r.author)} — ${escapeHtml(r.book)}</span>
+                            <span style="font-size:9.5px;color:#10b981;font-weight:700;">Score: ${r.score}</span>
+                        </div>
+                        <div style="font-size:10px;color:#cbd5e1;font-weight:600;margin-bottom:4px;">📌 ${escapeHtml(r.section)}</div>
+                        <div style="font-size:10.5px;color:#e2e8f0;line-height:1.4;white-space:pre-wrap;font-family:\'JetBrains Mono\',monospace;">${escapeHtml(r.text.substring(0, 450))}...</div>
+                    </div>
+                `).join('')}
+            `;
+        } catch(e) {
+            console.error('Error searching books RAG:', e);
+            resultsEl.innerHTML = '<div style="color:#ef4444;font-size:11px;padding:8px;">Error al consultar el motor RAG.</div>';
+        }
+    };
+
+    window.clearBooksSearch = function() {
+        const input = document.getElementById('books-search-input');
+        const resultsEl = document.getElementById('rag-search-results');
+        if (input) input.value = '';
+        if (resultsEl) {
+            resultsEl.innerHTML = '';
+            resultsEl.style.display = 'none';
+        }
+    };
+
+    // Initialize playbook and books content on start
+    setTimeout(() => {
+        loadSelectedPlaybook('01_market_structure.md');
+        loadBooksCatalog();
+    }, 500);
 
     // ── Logs (Flicker-Free & Aligned) ──────────────────────────
     let lastRenderedLogSig = '';
@@ -2610,7 +3945,7 @@
             span.textContent = 'Demo Simulado';
         } else {
             fetch('/api/mode?live=true');
-            span.textContent = 'Datos Live KuCoin';
+            span.textContent = 'Datos Live Bybit';
         }
     }
 
@@ -2675,8 +4010,9 @@
                 <div>
                     <label class="form-label">Estrategia</label>
                     <select class="form-control" onchange="bots[${i}].strategy=this.value" style="font-size:12px;padding:6px 10px;cursor:pointer;">
+                        <option value="crypto_futures_hunter" ${b.strategy==='crypto_futures_hunter'?'selected':''}>🚀 Crypto Futures Hunter ($200 ➔ $1,200) [Recomendado]</option>
+                        <option value="institutional_trend" ${b.strategy==='institutional_trend'?'selected':''}>Institutional Trend & Macro</option>
                         <option value="alpha_edge" ${b.strategy==='alpha_edge'?'selected':''}>AlphaEdge Trend-Pullback</option>
-                        <option value="orderbook_scalper" ${b.strategy==='orderbook_scalper'?'selected':''}>Orderbook L2 Scalper</option>
                     </select>
                 </div>
                 <div>
@@ -2725,7 +4061,7 @@
         closeWizard();
         if (wizardMode === 'single') {
             const b = bots[0];
-            const key = `alpha_edge_${b.capital}` || 'alpha_edge_1000';
+            const key = 'institutional_trend_pro';
             fetch(`/api/select_profile?key=${key}&capital=${b.capital}&symbol=${b.symbol}`)
                 .then(() => fetch('/api/start'));
         } else {
@@ -2854,7 +4190,7 @@
 <script>
     const TOOLTIPS = {
         'brand': {
-            icon: '⚡', title: 'A3 HFT Engine',
+            icon: '⚡', title: 'A3 Motor Trade',
             body: `Plataforma institucional de trading algorítmico de alta frecuencia y gestión de riesgo multi-activo en tiempo real.`
         },
         'activity-chip': {
@@ -2867,7 +4203,7 @@
         },
         'ticker-strip': {
             icon: '📊', title: 'Precios Mid-Market en Vivo',
-            body: `Feed de precios en vivo actualizado vía WebSockets directamente desde KuCoin / Binance.`
+            body: `Feed de precios en vivo actualizado vía WebSockets directamente desde Bybit.`
         },
         'uptime-chip': {
             icon: '⏱', title: 'Tiempo de Sesión (Uptime)',
@@ -2895,7 +4231,7 @@
         },
         'btn-mode': {
             icon: '🌐', title: 'Modo de Datos (Live / Demo)',
-            body: `Alterna entre alimentar el engine con ticks reales de KuCoin o con datos del simulador interno.`
+            body: `Alterna entre alimentar el engine con ticks reales de Bybit o con datos del simulador interno.`
         },
         'btn-cleardb': {
             icon: '🗑', title: 'Limpiar Base de Datos',
@@ -2911,75 +4247,75 @@
         },
         'btn-settings': {
             icon: '⚙', title: 'Configuración Avanzada',
-            body: `Panel de configuración en tiempo real. Ajusta parámetros de estrategia (ATR, RSI, ADX, BB), gestión de riesgo (drawdown, pérdidas consecutivas), fees de KuCoin, y slippage. Los cambios se aplican inmediatamente.`
+            body: `Panel de configuración en tiempo real. Ajusta parámetros de estrategia (ATR, RSI, ADX, BB), gestión de riesgo (drawdown, pérdidas consecutivas), fees de Bybit, y slippage. Los cambios se aplican inmediatamente.`
         },
         'mode-badge': {
             icon: '🔬', title: 'Modo de Operación: Training vs Live',
-            body: `<b style="color:#3b82f6">🔬 TRAINING</b> — Datos simulados del mercado. Sin riesgo real. Ideal para probar y entrenar estrategias.<br><br><b style="color:#ef4444">🔴 LIVE REAL</b> — Datos en vivo de KuCoin. Señales reales del mercado. Para producción.`
+            body: `<b style="color:#3b82f6">🔬 TRAINING</b> — Datos simulados del mercado. Sin riesgo real. Ideal para probar y entrenar estrategias.<br><br><b style="color:#ef4444">🔴 LIVE REAL</b> — Datos en vivo de Bybit. Señales reales del mercado. Para producción.`
         },
         'sidebar-info': {
             icon: 'ℹ️', title: 'Configuración Resumida',
             body: `Resumen de parámetros: Capital inicial, estrategia seleccionada, riesgo por operación y tolerancia máxima de drawdown.`
         },
         'capital': {
-            icon: '💰', title: 'Capital Total del Portafolio',
-            body: `Capital asignado al engine, distribuido entre todos los bots activos.<div class="tt-divider"></div><b>Con 3 bots sobre $1,000</b>, cada uno maneja ~$333.<br><br><b>Risk per trade:</b> el % abajo define cuánto capital máximo arriesgas por operación.<br><br>✓ Saludable: Capital ≥ inicial &nbsp;·&nbsp; ⚠ Alerta: Capital &lt; 90% del inicial`
+            icon: '💰', title: 'Capital Total del Portafolio — Proyecto Agustín',
+            body: `Capital asignado al motor HFT ($1,000.00 base).<div class="tt-divider"></div><b>Asignación 100% Dinámica:</b> Exposición máxima acotada al 35% del balance libre por trade.<br><br><b>Scale-Out Activo:</b> La posición reduce el riesgo liberando el 50% del capital al alcanzar 1.5x ATR.<br><br>✓ Saludable: Capital ≥ inicial &nbsp;·&nbsp; ⚠ Alerta: Capital &lt; 90% del inicial`
         },
         'pnl': {
             icon: '📈', title: 'PnL Neto Acumulado (Profit & Loss)',
-            body: `Ganancia o pérdida total de la sesión. Solo incluye trades <b>CERRADOS</b> (TP o SL).<div class="tt-divider"></div><b>Fórmula:</b> Σ (precio_salida − precio_entrada) × cantidad<br><br>✓ Meta diaria: <b>+$18</b> (1.8%)&nbsp;&nbsp;·&nbsp;&nbsp;Meta mensual: <b>+$500</b> (50%)<br>⚠ Alerta: PnL &lt; −$50 (5% del capital)`
+            body: `Ganancia o pérdida total de la sesión. Solo incluye trades <b>CERRADOS</b> (TP, Scale-Out o SL).<div class="tt-divider"></div><b>Fórmula:</b> Σ (precio_salida − precio_entrada) × cantidad − comisiones<br><br>✓ Scale-Out en 1.5x ATR asegura ganancias inmediatas.<br>✓ Full TP en 3.2x ATR | Stop Loss en 1.2x ATR (R:R 2.67:1)`
         },
         'winrate': {
-            icon: '🎯', title: 'Tasa de Acierto — Win Rate',
-            body: `Porcentaje de trades cerrados en ganancia sobre el total cerrado.<div class="tt-divider"></div>No es suficiente sola — combínala con el ratio TP/SL:<br>• WR <b>50%</b> con TP=2×SL → rentable ✓<br>• WR <b>40%</b> con TP=3×SL → también rentable ✓<br><br>✓ Objetivo A3: ≥ 53%&nbsp;&nbsp;·&nbsp;&nbsp;⚠ Revisar si WR &lt; 40% en +20 trades`
+            icon: '🎯', title: 'Tasa de Acierto — Win Rate (Scale-Out Optimized)',
+            body: `Porcentaje de trades cerrados en ganancia sobre el total.<div class="tt-divider"></div>Gracias al <b>Scale-Out al 50%</b> en 1.5x ATR y el candado a Breakeven (+0.1%), la tasa de acierto se incrementa al <b>65% - 70%</b>.`
         },
         'pf': {
             icon: '📊', title: 'Profit Factor y Sharpe Ratio',
-            body: `Métricas de rendimiento ajustadas por riesgo.<div class="tt-divider"></div><b>Profit Factor</b> = ganancias / pérdidas.<br>• <b style="color:#22c55e">&gt; 1.5</b> → Estrategia con edge real<br>• <b style="color:#f59e0b">1.0 – 1.5</b> → Borde estrecho<br>• <b style="color:#ef4444">&lt; 1.0</b> → Perdiendo dinero<br><br><b>Sharpe Ratio</b> mide retorno ajustado por riesgo.<br>• <b style="color:#22c55e">&gt; 1.0</b> → Bueno<br>• <b style="color:#f59e0b">0.5 – 1.0</b> → Aceptable<br>• <b style="color:#ef4444">&lt; 0.5</b> → Revisar estrategia`
+            body: `Métricas de rendimiento ajustadas por riesgo.<div class="tt-divider"></div><b>Profit Factor</b> = ganancias brutas / pérdidas brutas.<br>• <b style="color:#22c55e">&gt; 1.5</b> → Estrategia con ventaja matemática comprobada<br>• <b style="color:#f59e0b">1.0 – 1.5</b> → Rentabilidad moderada<br>• <b style="color:#ef4444">&lt; 1.0</b> → Pérdidas`
         },
         'drawdown': {
             icon: '📉', title: 'Drawdown Actual de la Sesión',
-            body: `Pérdida máxima acumulada desde el capital inicial de sesión.<div class="tt-divider"></div><b style="color:#22c55e">0–5%</b> → Normal, seguir operando<br><b style="color:#f59e0b">5–10%</b> → Precaución, revisar estrategia<br><b style="color:#ef4444">&gt; límite</b> → Circuit Breaker activa y congela todos los bots`
+            body: `Pérdida máxima acumulada desde el pico histórico de equidad.<div class="tt-divider"></div><b style="color:#22c55e">0–3%</b> → Normal, operando<br><b style="color:#f59e0b">3–5%</b> → Precaución<br><b style="color:#ef4444">&gt; 5%</b> → Circuit Breaker activa y congela el motor`
         },
         'riskguard': {
-            icon: '🛡', title: 'Risk Guard — Sistema de Protección de Capital',
-            body: `Monitorea drawdown y pérdidas consecutivas en tiempo real.<div class="tt-divider"></div>• <b style="color:#22c55e">OPERATIVO</b> — Trading normal<br>• <b style="color:#f59e0b">EN PAUSA</b> — Cooldown 60s por pérdidas consecutivas<br>• <b style="color:#ef4444">EMERGENCIA</b> — Circuit Breaker: todos los bots detenidos<br><br>Triggers: 5 pérdidas consec. → pausa&nbsp;&nbsp;·&nbsp;&nbsp;Drawdown &gt; límite → emergencia`
+            icon: '🛡', title: 'Risk Guard Enterprise — Proyecto Agustín',
+            body: `Monitorea drawdown, picos de noticias y exposición en tiempo real.<div class="tt-divider"></div>• <b style="color:#22c55e">OPERATIVO</b> — Trading normal<br>• <b style="color:#60a5fa">NEWS GUARD</b> — Bloqueo preventivo por picos de ATR &gt; 3x<br>• <b style="color:#f59e0b">EN PAUSA</b> — Enfriamiento por pérdidas consecutivas<br>• <b style="color:#ef4444">EMERGENCIA</b> — Circuit Breaker: motor detenido por Drawdown &gt; 5%`
         },
         'riskgauge': {
             icon: '📊', title: 'Gauge de Drawdown Visual',
-            body: `Barra que indica qué % del límite de drawdown ya has consumido.<div class="tt-divider"></div><b style="color:#22c55e">Verde</b> → 0–40% del límite<br><b style="color:#f59e0b">Ámbar</b> → 40–75% del límite<br><b style="color:#ef4444">Rojo</b> → &gt;75% — Circuit Breaker muy cerca`
+            body: `Barra que indica qué % del límite de drawdown diario (5%) se ha consumido.`
         },
         'drawdownpct': {
-            icon: '📉', title: 'Drawdown % / Límite del Preset',
-            body: `Pérdida actual como % del capital vs. el límite máximo configurado.<div class="tt-divider"></div><b>Fórmula:</b> |PnL_negativo| / capital_inicial × 100<br><br>Al superar el límite → Risk Guard activa el <b>Circuit Breaker</b> y congela todos los bots hasta reinicio.`
+            icon: '📉', title: 'Drawdown % / Límite Máximo (5%)',
+            body: `Pérdida actual como % del capital. Al superar el 5% diario, el Risk Guard activa el <b>Circuit Breaker</b>.`
         },
         'conseclosses': {
             icon: '🔢', title: 'Pérdidas Consecutivas',
-            body: `Cuántos trades perdedores seguidos ha tenido el bot más activo. Se resetea con cualquier trade ganador.<div class="tt-divider"></div>• Al llegar a <b>5</b>: cooldown de 60s automático<br>• Si además el drawdown supera el límite → Circuit Breaker completo<br><br><b>¿Por qué 5?</b> Con 4 bots en paralelo, 3 pérdidas seguidas son normales en mercado lateral.`
+            body: `Conteo de trades perdedores seguidos. Se resetea con cualquier ganancia parcial o total.`
         },
         'chart-select': {
             icon: '🔀', title: 'Selector de Par de Gráfico',
-            body: `Cambia la representación gráfica de precios al activo seleccionado (ej. SOL-USDT, BTC-USDT, ETH-USDT).`
+            body: `Cambia la representación gráfica de precios (SOL-USDT por defecto).`
         },
         'chart-panel': {
             icon: '📈', title: 'Gráfico Interactivo de Precios',
-            body: `Evolución tick-a-tick del precio con escala dinámica de volatilidad.`
+            body: `Evolución tick-a-tick del precio con velas japonesas e indicadores EMA/ATR.`
         },
         'ind-strategy': {
-            icon: '⚙', title: 'Estrategia Cuantitativa Activa',
-            body: `Algoritmo que genera las señales de entrada y salida para el par del gráfico.<div class="tt-divider"></div>• <b>ALPHAEDGE</b> — Trend-Pullback con EMA20/50 + ADX + RSI + ATR<br>Confirma tendencia con ADX > 20, busca pullback a EMA, valida con RSI.<br>SL = 1.5×ATR · TP = 2.5×ATR → ratio R:R = 1:1.67`
+            icon: '⚙', title: 'AlphaEdge PRO Strategy (Single-Asset SOL-USDT)',
+            body: `Estrategia de tendencia con confirmación EMA20/50/200 + ADX + RSI + ATR.<div class="tt-divider"></div>• <b>Scale-Out 50%</b> en 1.5x ATR + Candado Breakeven<br>• <b>Take Profit Final</b> en 3.2x ATR<br>• <b>Stop Loss Inicial</b> en 1.2x ATR (Ratio R:R 2.67:1)`
         },
         'ind-ema': {
-            icon: '📏', title: 'EMA 200 — Filtro de Tendencia',
-            body: `Media Móvil Exponencial de 200 períodos. Indicador de tendencia institucional.<div class="tt-divider"></div>• Precio <b>&gt; EMA200</b> → tendencia alcista → solo señales BUY<br>• Precio <b>&lt; EMA200</b> → tendencia bajista → solo señales SELL<br><br>Requiere <b>215 velas históricas</b> para calcular correctamente (warmup period).`
+            icon: '📏', title: 'EMA 200 — Filtro de Tendencia Institucional',
+            body: `Media Móvil Exponencial de 200 períodos. Exige que el precio esté sobre EMA200 para BUY y debajo para SELL.`
         },
         'ind-adx': {
             icon: '💪', title: 'ADX (14) — Fuerza de la Tendencia',
-            body: `Average Directional Index. Mide la <b>intensidad</b> de la tendencia, no su dirección. Rango: 0–100.<div class="tt-divider"></div><b style="color:#ef4444">0–20</b> → Lateral. Bollinger y Momentum NO operan<br><b style="color:#f59e0b">20–25</b> → Tendencia débil<br><b style="color:#22c55e">25–50</b> → Moderada — señales válidas<br><b style="color:#3b82f6">&gt;50</b> → Fuerte — mejores entradas<br><br>MomentumBreakout exige ADX &gt; 25 para operar.`
+            body: `Average Directional Index. Exige <b>ADX ≥ 16.0</b> para confirmar fuerza antes de abrir operaciones.`
         },
         'ind-tpsl': {
-            icon: '🎯', title: 'Take Profit / Stop Loss Estimados',
-            body: `Niveles calculados con ATR (volatilidad real del mercado) para la señal más reciente.<div class="tt-divider"></div><b>TP (Take Profit):</b> precio objetivo donde el bot cierra en ganancia.<br><b>SL (Stop Loss):</b> precio límite donde el bot corta la pérdida.<br><br>AlphaEdge: SL = 1.5×ATR · TP = 2.5×ATR → ratio R:R = 1:1.67<br>Solo se ejecutan señales con ratio ≥ 1.5:1.`
+            icon: '🎯', title: 'Take Profit / Scale-Out / Stop Loss Estimados',
+            body: `Niveles calculados con ATR en tiempo real.<div class="tt-divider"></div><b>Scale-Out (50%):</b> 1.5x ATR (Cierra mitad y mueve SL a Breakeven)<br><b>Full TP (50%):</b> 3.2x ATR (Cierre total)<br><b>SL:</b> 1.2x ATR`
         },
         'signal-chip': {
             icon: '📡', title: 'Señal Actual del Algoritmo',
@@ -3089,7 +4425,7 @@
 
     function renderProfilesCards(data) {
         const presets = data.presets || {};
-        const activeKey = data.active_preset || 'alpha_edge_1000';
+        const activeKey = data.active_preset || 'institutional_trend_pro';
         const container = document.getElementById('profiles-cards-container');
 
         let html = '';

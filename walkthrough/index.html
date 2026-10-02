@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walkthrough — A3 Motor Trade & A3 System x2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #080c14;
+            --bg-secondary: #0f172a;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-gold: #f59e0b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            padding: 32px 24px;
+            background-image: 
+                radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* HEADER HERO */
+        .hero {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 36px 40px;
+            backdrop-filter: blur(12px);
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent-green), var(--accent-blue), var(--accent-purple));
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .hero-title h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-title p {
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-size: 1.05rem;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--card-border);
+        }
+
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .pill-green .pill-dot { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        .pill-blue .pill-dot { background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue); }
+
+        /* SUMMARY GRID */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .card-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .tag-blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .tag-purple { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+
+        /* FEATURE LIST */
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .feature-list li:last-child { border-bottom: none; }
+        .feature-list .lbl { color: var(--text-muted); }
+        .feature-list .val { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+        /* ARCHITECTURE DIAGRAM SECTION */
+        .section-header {
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .diagram-container {
+            background: #0b1120;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 30px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .flow-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            position: relative;
+        }
+
+        .flow-step {
+            background: #131d33;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .flow-step .step-num {
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .flow-step h4 {
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .flow-step p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* CODE BLOCK & SCRIPTS */
+        .code-block {
+            background: #050811;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 16px 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            overflow-x: auto;
+            margin-top: 12px;
+            line-height: 1.7;
+        }
+
+        .code-comment { color: var(--text-dim); }
+
+        /* LIVE COMPARISON TABLE */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        th {
+            background: #0f172a;
+            color: var(--text-muted);
+            padding: 14px 18px;
+            font-weight: 600;
+            border-bottom: 2px solid var(--card-border);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Inter', sans-serif;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .btn-live {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-live:hover { opacity: 0.9; }
+
+        .btn-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .flow-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- HERO -->
+        <div class="hero">
+            <div class="hero-top">
+                <div class="hero-title">
+                    <h1>A3 System — Walkthrough de Operación</h1>
+                    <p>Despliegue simultáneo de dos ecosistemas independientes de Trading de Alta Frecuencia</p>
+                </div>
+                <div class="status-badges">
+                    <div class="pill pill-green">
+                        <span class="pill-dot"></span>
+                        A3-Motor-Trade :8005
+                    </div>
+                    <div class="pill pill-blue">
+                        <span class="pill-dot"></span>
+                        A3 System x2 :8010
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TWO ECOSYSTEMS COMPARISON -->
+        <div class="section-header">
+            <h3>🏢 Arquitectura de los Dos Entornos Paralelos</h3>
+            <p>El sistema original fue preservado intacto, mientras se desplegó un nuevo entorno para el duelo de estrategias.</p>
+        </div>
+
+        <div class="grid-2">
+            <!-- SISTEMA 1 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🖥️ Sistema Actual (A3-Motor-Trade)</h2>
+                    <span class="tag tag-green">Puerto 8005</span>
+                </div>
+                <ul class="feature-list">
+                    <li>
+                        <span class="lbl">Ruta en Disco</span>
+                        <span class="val mono">/home/andres/A3-Motor-Trade</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Servicio Systemd</span>
+                        <span class="val mono">a3-motor-trade.service</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Base de Datos</span>
+                        <span class="val mono">data/trades.db</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Estrategia Activa</span>
+                        <span class="val mono">AlphaEdge PRO (Híbrido)</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Motor de Salida</span>
+                        <span class="val">Runner Dinámico 1:3 R:R</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Dashboard Web</span>
+                        <span class="val"><a href="http://localhost:8005" target="_blank" class="btn-live">Abrir :8005 ↗</a></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- SISTEMA 2 -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚡ Nuevo Sistema (A3 System x2)</h2>
+                    <span class="tag tag-blue">Puerto 8010</span>
+                </div>
+                <ul class="feature-list">
+                    <li>
+                        <span class="lbl">Ruta en Disco</span>
+                        <span class="val mono">/home/andres/A3 System x2</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Modo Operativo</span>
+                        <span class="val mono">Duelo A/B (2 Bots en Vivo)</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Bases de Datos Aisladas</span>
+                        <span class="val mono">trades_bot_velas.db<br>trades_bot_algoritmos.db</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Capital Inicial</span>
+                        <span class="val mono">$200.00 USD por cada Bot</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Dashboard del Torneo</span>
+                        <span class="val"><a href="http://localhost:8010" target="_blank" class="btn-live btn-blue">Abrir :8010 ↗</a></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- DUAL-DECISION RUNNER FLOW -->
+        <div class="section-header">
+            <h3>🔄 Motor de Doble Decisión (Runner Dinámico vs Salida Defensiva)</h3>
+            <p>Implementación matemática para no cortar ganancias si el precio sube, pero vender al instante si retrocede.</p>
+        </div>
+
+        <div class="diagram-container">
+            <div class="flow-grid">
+                <div class="flow-step">
+                    <div class="step-num">Fase 1</div>
+                    <h4>Entrada con SL Estructural</h4>
+                    <p>Stop Loss protegido bajo la mecha de la vela o soporte (mínimo 0.8x ATR). Espacio para respirar.</p>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num">Fase 2</div>
+                    <h4>Piso Breakeven (+1.2R)</h4>
+                    <p>Al avanzar 1.2x riesgo o 70% hacia el TP, el SL sube cubriendo comisiones (cero pérdida garantizada).</p>
+                </div>
+                <div class="flow-step" style="border-color: rgba(16, 185, 129, 0.4);">
+                    <div class="step-num" style="color: var(--accent-green);">Fase 3 (Opción A)</div>
+                    <h4>Activación Runner</h4>
+                    <p>Al tocar el TP (1:3), <strong>no se vende</strong>. Se libera el techo y el piso persigue el pico a un 0.7% de distancia.</p>
+                </div>
+                <div class="flow-step" style="border-color: rgba(239, 68, 68, 0.4);">
+                    <div class="step-num" style="color: var(--accent-red);">Fase 4 (Opción B)</div>
+                    <h4>Salida Ultrarrápida</h4>
+                    <p>Si el precio retrocede y toca el piso, se ejecuta <strong>venta inmediata a mercado</strong> asegurando la cima.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- THE TWO BOTS IN A3 SYSTEM X2 -->
+        <div class="section-header">
+            <h3>⚔️ Los Dos Bots en Competencia ("A3 System x2")</h3>
+            <p>Ambos bots reciben exactamente el mismo feed de mercado de Bybit (SOL-USDT) en tiempo real.</p>
+        </div>
+
+        <div class="grid-2">
+            <!-- BOT VELAS -->
+            <div class="card" style="border-left: 4px solid var(--accent-green);">
+                <div class="card-header">
+                    <h2>🕯️ Bot 1: Velas & Acción de Precio</h2>
+                    <span class="tag tag-green">bot_velas</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+                    Estrategia visual inspirada en Al Brooks y Wyckoff. Busca absorciones institucionales y rechazos en soportes/resistencias.
+                </p>
+                <ul class="feature-list">
+                    <li>
+                        <span class="lbl">Archivo</span>
+                        <span class="val mono">strategies/candlestick_strategy.py</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Patrones de Giro</span>
+                        <span class="val">18 Patrones (Martillos, Envolventes, Morning Star)</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Filtros</span>
+                        <span class="val">Cero osciladores que bloqueen el soporte</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Trailing Stop</span>
+                        <span class="val">Bar-by-Bar (mínimo de cada vela de 5m)</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Base de Datos</span>
+                        <span class="val mono">data/trades_bot_velas.db</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- BOT QUANT -->
+            <div class="card" style="border-left: 4px solid var(--accent-blue);">
+                <div class="card-header">
+                    <h2>📐 Bot 2: Matemáticas & Algoritmos</h2>
+                    <span class="tag tag-blue">bot_algoritmos</span>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">
+                    Estrategia estadística basada en el catálogo de 8 algoritmos matemáticos y flujo de órdenes L2.
+                </p>
+                <ul class="feature-list">
+                    <li>
+                        <span class="lbl">Archivo</span>
+                        <span class="val mono">strategies/quant_strategy.py</span>
+                    </li>
+                    <li>
+                        <span class="lbl">L2 Orderbook</span>
+                        <span class="val">Micro-Price + Volume Imbalance (VIR &ge; 1.20)</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Tendencia</span>
+                        <span class="val">3-EMA Stack (20, 50, 200) + ADX &ge; 28.0</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Volatilidad</span>
+                        <span class="val">Bandas de Bollinger (%B) + Wilder ATR 1:3</span>
+                    </li>
+                    <li>
+                        <span class="lbl">Base de Datos</span>
+                        <span class="val mono">data/trades_bot_algoritmos.db</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 4. ENDPOINTS Y DASHBOARD EN VIVO -->
+        <div class="section-header">
+            <h3>🌐 4. Endpoints y Dashboard en Vivo</h3>
+            <p>Acceso directo al panel visual y a las APIs REST del torneo A/B en el puerto 8010.</p>
+        </div>
+
+        <div class="card" style="margin-bottom: 32px; border-left: 4px solid var(--accent-gold);">
+            <div class="card-header">
+                <h2>Panel Visual & APIs del Torneo Dual</h2>
+                <span class="tag" style="background: rgba(245, 158, 11, 0.15); color: var(--gold); border: 1px solid var(--gold);">Puerto 8010</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Recurso / Endpoint</th>
+                            <th>Método</th>
+                            <th>URL / Enlace Directo</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Dashboard Visual del Torneo</strong></td>
+                            <td><span class="tag tag-green">GET</span></td>
+                            <td><a href="http://localhost:8010" target="_blank" class="mono" style="color: var(--accent-green); text-decoration: underline; font-weight: 600;">http://localhost:8010</a></td>
+                            <td style="color: var(--text-muted);">Diseño lado a lado con panel comparativo, métricas en tiempo real y posiciones de ambos bots.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>API Leaderboard</strong></td>
+                            <td><span class="tag tag-blue">GET</span></td>
+                            <td><a href="http://localhost:8010/api/leaderboard" target="_blank" class="mono" style="color: var(--accent-blue); text-decoration: underline;">http://localhost:8010/api/leaderboard</a></td>
+                            <td style="color: var(--text-muted);">JSON con estadísticas comparativas: PnL, Win Rate, Profit Factor, Sharpe y líder actual.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>API Estado General</strong></td>
+                            <td><span class="tag tag-blue">GET</span></td>
+                            <td><a href="http://localhost:8010/api/state" target="_blank" class="mono" style="color: var(--accent-blue); text-decoration: underline;">http://localhost:8010/api/state</a></td>
+                            <td style="color: var(--text-muted);">Estado global del torneo, ticks procesados y posiciones activas de ambos bots.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Reiniciar Batalla</strong></td>
+                            <td><span class="tag" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">POST</span></td>
+                            <td><span class="mono" style="color: #f87171;">http://localhost:8010/api/reset?capital=200</span></td>
+                            <td style="color: var(--text-muted);">Reinicia el torneo reseteando el capital de ambos bots a $200.00 USD para una nueva ronda.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        <!-- ARQUITECTURA SNIPER INTRADÍA / SWING CUANTITATIVO -->
+        <div class="section-header">
+            <h3>🦅 Arquitectura Sniper Intradía / Swing Cuantitativo (Timeframe 15m)</h3>
+            <p>Erradicación definitiva del micro-HFT: evaluación exclusiva al cierre de vela y ganancias institucionales.</p>
+        </div>
+
+        <div class="card" style="border-left: 4px solid var(--accent-green);">
+            <div class="card-header">
+                <h2>Especificaciones de Ejecución Sniper</h2>
+                <span class="tag tag-green">15M Swing Mode</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px;">
+                    <h4 style="color: var(--accent-green); margin-bottom: 8px;">🎯 Target Ganador: $4.50 a $8.00+ USD</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Recorridos del 3.8% al 5.5% del precio. La comisión del exchange ($0.20) representa menos del 4% de la ganancia total.</p>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px;">
+                    <h4 style="color: var(--accent-blue); margin-bottom: 8px;">🕯️ Cero Ruido Intra-Vela (15m Candle-Closed)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Las señales se evalúan exclusivamente cuando la vela de 15 minutos cierra. Cero disparos por microsegundos o falsas mechas de 1 segundo.</p>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px;">
+                    <h4 style="color: var(--accent-purple); margin-bottom: 8px;">🛡️ Stop Loss con Oxígeno Real (1.6% - 2.2%)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Colocado con holgura detrás de pivotes fractales de 15m. Evita que el ruido ordinario de $0.50 en SOL corte la operación.</p>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border); border-radius: 8px; padding: 16px;">
+                    <h4 style="color: var(--accent-gold); margin-bottom: 8px;">🦅 Disciplina Sniper (Máx 3 Trades/Día)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Máximo 3 operaciones selectivas al día. Pausa automática de 60 minutos si ocurren 2 pérdidas consecutivas.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TERMINAL CONTROL COMMANDS -->
+        <div class="section-header">
+            <h3>⌨️ Comandos de Control de "A3 System x2"</h3>
+            <p>Scripts listos para operar desde cualquier terminal en tu sistema.</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Scripts de Gestión en Segundo Plano</h2>
+                <span class="tag tag-purple">Bash Tools</span>
+            </div>
+
+            <p style="color: var(--text-muted); font-size: 0.95rem;">
+                Puedes controlar el nuevo servidor de torneo desde la raíz del proyecto ejecutando:
+            </p>
+
+            <div class="code-block">
+<span class="code-comment"># 1. Ver el estado en vivo y marcador de ambos bots</span>
+./"A3 System x2/status.sh"
+
+<span class="code-comment"># 2. Iniciar el servidor dual en segundo plano (puerto 8010)</span>
+./"A3 System x2/start.sh"
+
+<span class="code-comment"># 3. Detener el servidor dual</span>
+./"A3 System x2/stop.sh"
+
+<span class="code-comment"># 4. Ver los logs en tiempo real</span>
+tail -f "A3 System x2/server.log"
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="text-align: center; margin-top: 40px; color: var(--text-dim); font-size: 0.85rem;">
+            A3 Motor Trade & A3 System x2 — Plataforma Algorítmica Dual — 2026
+        </div>
+
+    </div>
+</body>
+</html>

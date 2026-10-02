@@ -1,0 +1,18 @@
+[Unit]
+Description=A3 System x2 — Batalla A/B: Velas vs Matematicas (Port 8010)
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/andres/A3-Motor-Trade/a3_system_x2
+ExecStart=/usr/bin/python3 /home/andres/A3-Motor-Trade/a3_system_x2/server.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/andres/A3-Motor-Trade/a3_system_x2/server.log
+StandardError=append:/home/andres/A3-Motor-Trade/a3_system_x2/server.log
+Environment=PYTHONUNBUFFERED=1
+Environment=PORT=8010
+
+[Install]
+WantedBy=default.target

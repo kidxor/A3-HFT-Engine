@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A3 AlphaEdge PRO — Historial Estadístico & Meta Semanal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #080b11;
+            --bg-secondary: #0e1422;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --bg-glass: rgba(26, 34, 52, 0.55);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(59, 130, 246, 0.35);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-green: #10b981;
+            --accent-green-glow: rgba(16, 185, 129, 0.25);
+            --accent-red: #ef4444;
+            --accent-red-glow: rgba(239, 68, 68, 0.2);
+            --accent-blue: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-gold-glow: rgba(245, 158, 11, 0.2);
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* TOP NAVIGATION BAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 32px;
+            background: rgba(14, 20, 34, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+
+        .btn-refresh {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 9px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-refresh:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 1280px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 32px 24px 64px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* WEEKEND STANDBY BANNER */
+        .weekend-banner {
+            display: none;
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.04));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 14px;
+            padding: 16px 22px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px var(--accent-gold-glow);
+        }
+
+        .weekend-banner.active {
+            display: flex;
+        }
+
+        .weekend-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .weekend-icon {
+            font-size: 1.6rem;
+        }
+
+        .weekend-text h4 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 2px;
+        }
+
+        .weekend-text p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .weekend-badge {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        /* HERO: GOAL TRACKER CARD */
+        .goal-card {
+            background: linear-gradient(135deg, rgba(14, 20, 34, 0.95), rgba(22, 32, 54, 0.85));
+            border: 1px solid var(--border-glow);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .goal-card::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .goal-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .goal-title {
+            font-size: 1.85rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+
+        .goal-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .target-numbers {
+            text-align: right;
+        }
+
+        .target-amount {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            line-height: 1;
+        }
+
+        .target-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* PROGRESS BAR */
+        .progress-wrapper {
+            margin: 20px 0 16px 0;
+        }
+
+        .progress-bar-bg {
+            width: 100%;
+            height: 18px;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #10b981, #34d399);
+            border-radius: 12px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.5);
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .progress-meta strong {
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+        }
+
+        /* STATS SUMMARY GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            color: var(--text-primary);
+        }
+
+        .stat-value.green {
+            color: var(--accent-green);
+        }
+
+        .stat-value.red {
+            color: var(--accent-red);
+        }
+
+        .stat-footnote {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        /* DAILY HISTORY SECTION */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .days-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .day-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 20px 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .day-card:hover {
+            background: var(--bg-glass);
+            border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .day-card.profit {
+            border-left: 5px solid var(--accent-green);
+        }
+
+        .day-card.loss {
+            border-left: 5px solid var(--accent-red);
+        }
+
+        .day-date-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .day-date {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .day-weekday {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .day-metrics {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .day-metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .day-metric-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .day-metric-val {
+            font-size: 0.95rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .pnl-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 1.15rem;
+        }
+
+        .pnl-pill.profit {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .pnl-pill.loss {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px dashed var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+
+        /* FOOTER */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <a href="/" class="brand-box">
+            <span class="brand-badge">PRO</span>
+            <div>
+                <div class="brand-title">A3 AlphaEdge PRO <span style="color: #38bdf8;">Analytics</span></div>
+                <div class="brand-subtitle">Historial de Rendimiento & Meta Semanal</div>
+            </div>
+        </a>
+
+        <div class="nav-actions">
+            <button id="btn-reset" class="btn-refresh" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #f87171;" onclick="resetStatsFromHere()">
+                🧹 Reiniciar a Cero ($200)
+            </button>
+            <button id="btn-refresh" class="btn-refresh" onclick="loadDailyStats()">
+                🔄 Actualizar
+            </button>
+            <a href="/" class="btn-back">
+                ← Dashboard en Vivo
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- WEEKEND STANDBY BANNER (Replaces uncertainty with institutional clarity) -->
+        <section id="weekend-banner" class="weekend-banner">
+            <div class="weekend-info">
+                <span class="weekend-icon">🛡️</span>
+                <div class="weekend-text">
+                    <h4>PROTECCIÓN FIN DE SEMANA ACTIVA (Standby Autónomo)</h4>
+                    <p id="weekend-reason-text">Mercado de CME y Wall Street cerrado. Libros L2 sin liquidez institucional. Capital blindado 100% hasta la apertura del domingo a las 22:00 UTC.</p>
+                </div>
+            </div>
+            <span class="weekend-badge">0 RIESGO ACTIVO</span>
+        </section>
+
+        <!-- HERO: DUAL PHASE GOAL TRACKER (Paso 1: $2,000 USD | Paso 2: $200 USD/sem) -->
+        <section class="goal-card">
+            <!-- PHASE 1: CAPITAL ESCALATION -->
+            <div class="goal-header">
+                <div>
+                    <span class="goal-tag" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4);">
+                        🚀 PASO 1: ESCALADA DE CAPITAL ($200 ➔ $2,000 USD)
+                    </span>
+                    <h1 class="goal-title">Objetivo Principal: Llevar la Cuenta a $2,000 USD</h1>
+                    <p class="goal-subtitle">Interés Compuesto Automático | Cada ganancia escala el lotaje sin aumentar el riesgo.</p>
+                </div>
+                <div class="target-numbers">
+                    <div class="target-amount" id="kpi-current-capital" style="color: #60a5fa;">$200.00</div>
+                    <div class="target-label">Capital Total en Cartera (Meta: $2,000 USD)</div>
+                </div>
+            </div>
+
+            <!-- PHASE 1 PROGRESS BAR -->
+            <div class="progress-wrapper" style="margin-bottom: 24px;">
+                <div class="progress-bar-bg" style="height: 14px;">
+                    <div id="phase1-progress-fill" class="progress-bar-fill" style="background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 10%;"></div>
+                </div>
+                <div class="progress-meta">
+                    <div>Progreso Paso 1: <strong id="phase1-progress-pct" style="color: #60a5fa;">10.0%</strong> ($200 / $2,000 USD)</div>
+                    <div>Faltante para Meta $2,000: <strong id="phase1-remaining-usd">$1,800.00 USD</strong></div>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--border-subtle); margin: 20px 0;">
+
+            <!-- PHASE 2: WEEKLY YIELD -->
+            <div class="goal-header" style="margin-bottom: 14px;">
+                <div>
+                    <span class="goal-tag">🎯 PASO 2: RENTA SEMANAL ($200 USD / SEMANA)</span>
+                    <p class="goal-subtitle" style="font-size: 0.85rem;">En $2,000 USD, $200 representa solo un 10% semanal. Cero estrés y máxima protección.</p>
+                </div>
+                <div class="target-numbers">
+                    <div class="target-amount" id="kpi-weekly-net" style="font-size: 1.4rem;">$0.00</div>
+                    <div class="target-label">Ganancia Neta Semanal</div>
+                </div>
+            </div>
+
+            <div class="progress-wrapper">
+                <div class="progress-bar-bg" style="height: 8px;">
+                    <div id="goal-progress-fill" class="progress-bar-fill"></div>
+                </div>
+                <div class="progress-meta">
+                    <div>Meta Mínima Semanal ($200): <strong id="goal-min-progress">0.0%</strong> | Techo ($1,000): <strong id="goal-max-progress">0.0%</strong></div>
+                    <div>Faltante para $200 Semanal: <strong id="goal-remaining-usd">$200.00 USD</strong></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HIGH-LEVEL STATS GRID -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">PnL Total Acumulado</span>
+                <div id="kpi-global-pnl" class="stat-value">$0.00</div>
+                <span class="stat-footnote">Histórico neto auditado</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Tasa de Acierto (Win Rate)</span>
+                <div id="kpi-global-wr" class="stat-value">0.0%</div>
+                <span id="kpi-trades-count" class="stat-footnote">0 operaciones registradas</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Escudo Macro Económico</span>
+                <div id="kpi-macro-shield" class="stat-value" style="font-size: 1.05rem; color: #10b981;">🟢 ACTIVO</div>
+                <span id="kpi-macro-desc" class="stat-footnote">Protección CPI / FOMC / NFP</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Horario Institucional</span>
+                <div id="kpi-session-status" class="stat-value" style="font-size: 1.05rem; color: #38bdf8;">ESPERA</div>
+                <span id="kpi-trades-today" class="stat-footnote">0 / 6 trades hoy (Modo Francotirador)</span>
+            </div>
+        </section>
+
+
+        <!-- DAILY BREAKDOWN SECTION -->
+        <section>
+            <div class="section-header" style="margin-bottom: 18px;">
+                <h2 class="section-title">📅 Desglose Diario de Ganancias y Pérdidas</h2>
+                <span id="sync-time" style="font-size: 0.8rem; color: var(--text-muted);">Sincronizado: --:--:--</span>
+            </div>
+
+            <div id="days-container" class="days-container">
+                <!-- Dynamically populated via JS -->
+                <div class="empty-state">
+                    <p>Cargando historial estadístico desde la base de datos...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        A3 AlphaEdge PRO HFT Engine — Diseñado para autonomía, preservación de capital y consistencia institucional.
+    </footer>
+
+    <script>
+        async function loadDailyStats() {
+            const btn = document.getElementById("btn-refresh");
+            if (btn) btn.innerText = "⏳ Cargando...";
+
+            try {
+                const res = await fetch("/api/daily_stats");
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                const data = await res.json();
+
+                renderStats(data);
+            } catch (err) {
+                console.error("Error loading stats:", err);
+            } finally {
+                if (btn) btn.innerText = "🔄 Actualizar";
+                document.getElementById("sync-time").innerText = "Sincronizado: " + new Date().toLocaleTimeString();
+            }
+        }
+
+        function renderStats(data) {
+            // Weekend Standby Banner
+            const banner = document.getElementById("weekend-banner");
+            if (data.weekend_standby) {
+                banner.classList.add("active");
+                if (data.weekend_reason) {
+                    document.getElementById("weekend-reason-text").innerText = data.weekend_reason;
+                }
+            } else {
+                banner.classList.remove("active");
+            }
+
+            // Institutional Session Status
+            const sessionEl = document.getElementById("kpi-session-status");
+            const tradesTodayEl = document.getElementById("kpi-trades-today");
+            if (sessionEl) {
+                if (data.institutional_session) {
+                    sessionEl.innerText = "🟢 SESIÓN ACTIVA";
+                    sessionEl.style.color = "#10b981";
+                } else {
+                    sessionEl.innerText = "⏳ ESPERA APERTURA";
+                    sessionEl.style.color = "#38bdf8";
+                }
+            }
+            if (tradesTodayEl) {
+                const count = data.daily_trades_count || 0;
+                const maxT = data.max_daily_trades || 6;
+                tradesTodayEl.innerText = `${count} / ${maxT} trades hoy (Modo Francotirador)`;
+            }
+
+            // Phase 1 Capital Escalation ($2,000 USD Target)
+            const cap = data.current_capital || 200.0;
+            const p1Target = data.phase1_target_usd || 2000.0;
+            const p1Pct = data.phase1_progress_pct !== undefined ? data.phase1_progress_pct : Math.min(100.0, Math.max(0.0, (cap / p1Target) * 100.0));
+            const p1Rem = data.phase1_remaining_usd !== undefined ? data.phase1_remaining_usd : Math.max(0.0, p1Target - cap);
+
+            const capEl = document.getElementById("kpi-current-capital");
+            if (capEl) capEl.innerText = "$" + cap.toFixed(2);
+            const p1FillEl = document.getElementById("phase1-progress-fill");
+            if (p1FillEl) p1FillEl.style.width = p1Pct + "%";
+            const p1PctEl = document.getElementById("phase1-progress-pct");
+            if (p1PctEl) p1PctEl.innerText = p1Pct.toFixed(1) + "%";
+            const p1RemEl = document.getElementById("phase1-remaining-usd");
+            if (p1RemEl) p1RemEl.innerText = "$" + p1Rem.toFixed(2) + " USD";
+
+            // Macro Shield Status
+            const macroEl = document.getElementById("kpi-macro-shield");
+            const macroDescEl = document.getElementById("kpi-macro-desc");
+            if (macroEl) {
+                if (data.macro_shield_active) {
+                    macroEl.innerText = "🚨 VEDA ACTIVA";
+                    macroEl.style.color = "#f87171";
+                    if (macroDescEl) macroDescEl.innerText = data.macro_shield_reason || "Operaciones pausadas por noticia";
+                } else {
+                    macroEl.innerText = "🟢 VIGILANTE";
+                    macroEl.style.color = "#10b981";
+                    if (macroDescEl) macroDescEl.innerText = "Sin noticias rojas activas";
+                }
+            }
+
+            // Goal Progress: Range $200 - $1000
+            const weeklyNet = data.weekly_net_pnl || 0.0;
+            const minTarget = data.weekly_min_target_usd || 200.0;
+            const maxTarget = data.weekly_max_target_usd || 1000.0;
+
+            const minPct = Math.min(100.0, Math.max(0.0, (weeklyNet / minTarget) * 100.0));
+            const maxPct = Math.min(100.0, Math.max(0.0, (weeklyNet / maxTarget) * 100.0));
+            const minRemaining = Math.max(0.0, minTarget - weeklyNet);
+
+            const weeklyEl = document.getElementById("kpi-weekly-net");
+            weeklyEl.innerText = (weeklyNet >= 0 ? "+$" : "-$") + Math.abs(weeklyNet).toFixed(2);
+            weeklyEl.style.color = weeklyNet >= 0 ? "#34d399" : "#f87171";
+
+            document.getElementById("goal-progress-fill").style.width = minPct + "%";
+            document.getElementById("goal-min-progress").innerText = minPct.toFixed(1) + "%";
+            document.getElementById("goal-max-progress").innerText = maxPct.toFixed(1) + "%";
+            document.getElementById("goal-remaining-usd").innerText = "$" + minRemaining.toFixed(2) + " USD";
+
+            // Global KPIs
+            const globPnl = data.global_net_pnl || 0.0;
+            const globPnlEl = document.getElementById("kpi-global-pnl");
+            globPnlEl.innerText = (globPnl >= 0 ? "+$" : "-$") + Math.abs(globPnl).toFixed(2);
+            globPnlEl.className = "stat-value " + (globPnl >= 0 ? "green" : "red");
+
+
+            document.getElementById("kpi-global-wr").innerText = (data.global_win_rate || 0.0).toFixed(1) + "%";
+            document.getElementById("kpi-trades-count").innerText = `${data.total_trades || 0} trades (${data.total_wins || 0}W / ${data.total_losses || 0}L)`;
+            document.getElementById("kpi-global-fees").innerText = "$" + (data.global_fees || 0.0).toFixed(2);
+
+            // Daily List
+            const container = document.getElementById("days-container");
+            const days = data.days || [];
+
+            if (days.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No hay operaciones cerradas aún</h3>
+                        <p>Cuando el motor ejecute operaciones en día laboral, aparecerá aquí el desglose día por día.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = days.map(d => {
+                const isProfit = d.net_pnl >= 0;
+                const sign = isProfit ? "+" : "";
+                const pnlClass = isProfit ? "profit" : "loss";
+
+                // Format friendly weekday
+                const parts = d.date.split("-");
+                const dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                const weekdayStr = dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+
+                return `
+                    <div class="day-card ${pnlClass}">
+                        <div class="day-date-box">
+                            <div class="day-date">
+                                <span>📅</span> ${d.date}
+                            </div>
+                            <span class="day-weekday">${weekdayStr.charAt(0).toUpperCase() + weekdayStr.slice(1)}</span>
+                        </div>
+
+                        <div class="day-metrics">
+                            <div class="day-metric-item">
+                                <span class="day-metric-label">Operaciones</span>
+                                <span class="day-metric-val">${d.total_trades} (${d.wins}W / ${d.losses}L)</span>
+                            </div>
+                            <div class="day-metric-item">
+                                <span class="day-metric-label">Tasa de Acierto</span>
+                                <span class="day-metric-val">${d.win_rate_pct}%</span>
+                            </div>
+                            <div class="day-metric-item">
+                                <span class="day-metric-label">Volumen Operado</span>
+                                <span class="day-metric-val">$${d.volume_usd.toFixed(2)}</span>
+                            </div>
+                            <div class="day-metric-item">
+                                <span class="day-metric-label">Comisiones (Fees)</span>
+                                <span class="day-metric-val" style="color: #f59e0b;">$${d.total_fees.toFixed(2)}</span>
+                            </div>
+                            <div class="day-metric-item">
+                                <span class="day-metric-label">Profit Factor</span>
+                                <span class="day-metric-val">${d.profit_factor}</span>
+                            </div>
+                        </div>
+
+                        <div class="pnl-pill ${pnlClass}">
+                            ${sign}$${d.net_pnl.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        async function resetStatsFromHere() {
+            if (!confirm("¿Confirmas que deseas reiniciar todas las estadísticas a cero y empezar limpio con $200 USD?")) return;
+            try {
+                const res = await fetch('/api/reset_stats?capital=200');
+                const data = await res.json();
+                if (data.status === 'reset') {
+                    await loadDailyStats();
+                    alert("🧹 Base de datos y métricas reiniciadas a cero con éxito ($200.00 USD).");
+                } else {
+                    alert("Error al reiniciar: " + (data.message || "Desconocido"));
+                }
+            } catch (err) {
+                console.error("Error al reiniciar stats:", err);
+            }
+        }
+
+        // Auto fetch on load and every 10 seconds
+        window.addEventListener("DOMContentLoaded", () => {
+            loadDailyStats();
+            setInterval(loadDailyStats, 10000);
+        });
+    </script>
+</body>
+</html>

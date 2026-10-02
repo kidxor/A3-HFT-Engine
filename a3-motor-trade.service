@@ -1,0 +1,21 @@
+[Unit]
+Description=A3 AlphaEdge PRO HFT Engine (Proyecto Agustin)
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=andres
+WorkingDirectory=/home/andres/A3-Motor-Trade
+ExecStart=/usr/bin/python3 /home/andres/A3-Motor-Trade/server.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/andres/A3-Motor-Trade/server.log
+StandardError=append:/home/andres/A3-Motor-Trade/server.log
+Environment=PYTHONUNBUFFERED=1
+Environment=PORT=8005
+Environment=LIVE_MODE=true
+Environment=AUTO_START_ENGINE=true
+
+[Install]
+WantedBy=multi-user.target

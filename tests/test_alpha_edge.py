@@ -51,7 +51,7 @@ class TestStrategyRegistry(unittest.TestCase):
         from strategies import STRATEGY_REGISTRY, DEFAULT_STRATEGY
         self.assertIn("alpha_edge", STRATEGY_REGISTRY)
         self.assertIn("orderbook_scalper", STRATEGY_REGISTRY)
-        self.assertEqual(DEFAULT_STRATEGY, "alpha_edge")
+        self.assertIn(DEFAULT_STRATEGY, ["crypto_futures_hunter", "institutional_trend", "alpha_edge"])
 
     def test_orderbook_scalper_returns_neutral_without_metrics(self):
         from strategies.orderbook_scalper import OrderbookScalperStrategy

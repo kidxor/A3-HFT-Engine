@@ -1,0 +1,546 @@
+18
+
+PATRONES DE
+VELAS QUE DEBES
+cCONOCER
+
+Velas japonesas
+
+¿Qué son?
+¿Cómo leer una vela japonesa?
+¿Qué es un gap?
+
+Patrones Bajistas
+Envolvente bajista
+Lápida o Bearish DOJI
+Hombre colgado
+Estrella fugaz
+Estrella del atardecer
+
+Harami bajista
+Tres cuervos negros
+
+E
+C
+I
+D
+N
+í
+
+Cubierta de nube oscura
+
+Patrones Alcistas
+Envolvente alcista
+Libélula o Bullish DOJI
+Martillo
+Martillo invertido
+Estrella del Amanecer
+Perforación
+Harami alcista
+Tres soldados blancos
+
+Patrones Neutrales
+DOJI
+
+Resumen
+
+E
+C
+I
+D
+N
+í
+
+DOJI de piernas largas
+
+Presentación
+
+Somos un equipo de traders y analistas
+profesionales con más de 10 años de
+Agregar
+un subtítulo
+experiencia
+en el sector
+financiero. Luego de
+formar
+parte
+de
+grandes
+entidades
+financieras a nivel mundial, decidimos
+reunirnos y comenzar nuestra propia
+empresa con el objetivo de ser el proveedor
+de señales número 1 en Latinoamérica.
+En Trading FX te ayudamos a comenzar y
+adentrarte en el maravilloso mundo de los
+mercados financieros. A través de este ebook
+aprenderás las características y utilidad de
+las velas japonesas, junto con 18 patrones de
+velas que debes conocer para mejorar tu
+Trading. Esperamos que este contenido nutra
+tus análisis y te convierta en un mejor trader.
+
+18 Patrones de velas que
+debes conocer
+
+Velas japonesas
+Las velas japonesas fueron creadas en el siglo
+XVIII en Japón, dentro del primer mercado de
+futuros del mundo, el Dojima Rice con el objetivo
+de anticiparse al precio del arroz y establecer
+contratos de futuros rentables.
+Estas son la representación visual del movimiento
+en el precio de un activo mediante el uso de
+distintas temporalidades, las cuales pueden ir
+desde los 30 segundos, los 5 minutos, un día,
+semanas o incluso meses, dependiendo de la
+fracción de tiempo que se elija. En su conjunto
+forman el gráfico de velas, uno de los elementos
+más conocidos y utilizados en el análisis técnico,
+debido a que brinda una gran cantidad de
+información junto a una extraordinaria facilidad
+en su lectura. El gráfico de velas nos permite
+interpretar rápidamente los movimientos del
+mercado junto a sus máximos y mínimos, además
+de distintos patrones que nos ayudan a intuir el
+próximo movimiento del mercado.
+
+www.tradingfx.finance
+
+Cada vela está formada
+por tres características
+principales.
+El cuerpo, nos muestra el intervalo entre la
+apertura y el cierre del precio.
+La mecha, también llamada sombra, nos
+indica el punto más alto y más bajo que
+alcanzó el precio. Cuando una vela no
+presenta mecha, significa que el precio de
+cierre y/o apertura coincide con el nivel más
+alto o más bajo que alcanzó el precio.
+El color, nos da a entender la dirección del
+movimiento del mercado. Un cuerpo verde o
+blanco significa un aumento en el precio
+dándonos una vela alcista, mientras que un
+cuerpo rojo o negro muestra una caída en
+este formando una vela bajista, aunque estos
+colores son configurables, por lo que puedes
+seleccionar los que más te gusten.
+
+Velas japonesas
+
+¿Cómo se leen las velas
+japonesas?
+
+Cada vela nos muestra la siguiente información.
+El precio de apertura
+El precio de cierre
+El precio mínimo
+El precio máximo
+
+Máximo
+Cierre
+
+Apertura
+
+Máximo
+
+Apertura
+Mínimo
+Cierre
+Mínimo
+
+www.tradingfx.finance
+
+¿Qué es un gap?
+Un gap es un salto en el precio de un activo de tal
+manera que se forma un hueco entre una vela y
+otra. Este se da debido a la falta de operaciones
+en el margen de precios que conforman el hueco.
+Estos saltos pueden darse en cualquier
+temporalidad, aunque es más común verlos en las
+temporalidades más bajas, como pueden ser las 1
+o 2 horas.
+
+Gap bajista
+
+Gap alcista
+
+www.tradingfx.finance
+
+Patrones bajistas
+Envolvente bajista
+Una envolvente bajista nos indica que existe la
+posibilidad de un cambio en la dirección del
+precio. Está formado por una vela alcista y una
+segunda vela bajista que envuelve por completo
+el cuerpo de la primera vela. Mientras más velas
+sean envueltas por la vela bajista más efectivo
+será el patrón.
+
+Patrón de reversión
+Efectividad alta
+
+Envolvente bajista
+
+Lápida o Bearish DOJI
+Este patrón está formado por una vela con una
+gran mecha superior y un pequeño cuerpo en la
+parte inferior. Nos indica una posible continuidad
+o reversión de la tendencia, dependiendo de
+cómo venga el mercado. Si este viene con un
+impulso bajista nos muestra una continuidad,
+mientras que en uno alcista nos marca una
+reversión.
+
+Patrón de continuidad o reversión.
+Efectividad media-alta.
+
+Lapida o Bearish DOJI
+
+Hombre colgado
+El hombre colgado es un patrón bastante común
+de encontrar. Este patrón nos indica la posibilidad
+de un cambio de tendencia o una continuación
+dependiendo si tenemos un impulso bajista o
+alcista. Su característica principal es poseer una
+mecha inferior dos veces más grande que el
+cuerpo, es decir el cuerpo mide 1/3 del patrón si
+sumamos ambos elementos.
+
+Patrón de continuidad o reversión.
+Efectividad alta.
+
+Hombre colgado
+
+Estrella fugaz
+Este patrón es similar al hombre colgado, la única
+diferencia que tiene es la ubicación de su mecha.
+En el caso de la estrella fugaz se ubica en la parte
+superior, también nos indica un potencial cambio
+de tendencia alcista a bajista.
+
+Patrón de reversión
+Efectividad baja- media
+
+Estrella fugaz
+
+Estrella del atardecer
+La estrella del atardecer suele aparecer al final
+de una tendencia indicándonos una probable
+reversión. Este patrón está formado por tres
+velas, en primer lugar una vela alcista de gran
+cuerpo, seguida de una vela de indecisión y una
+vela de gran cuerpo bajista, la cual debe envolver
+al menos el 50% de la primer vela.
+
+Patrón de reversión
+Efectividad alta
+
+Estrella del atardecer
+
+Cubierta de nube negra
+La cubierta de nube negra está formada por una
+vela alcista con un cuerpo de gran tamaño,
+seguida de un pequeño gap alcista y una vela
+bajista que debe cerrar como mínimo alcanzando
+un 50% del cuerpo de la vela alcista. Es muy
+común encontrar este patrón, principalmente en
+tendencias alcistas cuando nos indica una posible
+reversión.
+
+Patrón de reversión
+Efectividad alta
+
+Cubierta de nube negra
+
+Harami bajista
+Este patrón nos indica un potencial cambio de
+tendencia alcista a bajista. Es similar a la
+envolvente bajista pero con sus velas invertidas,
+es decir, un harami bajista tiene una vela alcista
+de gran tamaño seguido de una pequeña vela
+bajista que abre por debajo del cierre anterior.
+
+Patrón de reversión
+Efectividad baja
+
+Harami bajista
+
+Tres cuervos negros
+Los tres cuervos negros son un conjunto de tres
+velas bajistas que poseen un cuerpo de gran
+tamaño. Es un patrón bastante común de
+encontrar y muy fiable, el cual nos indica la
+posibilidad de reversión en la tendencia.
+
+Patrón de reversión
+Efectividad alta
+
+Tres cuervos negros
+
+Patrones alcistas
+Envolvente alcista
+Una envolvente bajista nos indica que existe la
+posibilidad de un cambio en la dirección del
+precio. Está formado por una vela bajista, seguida
+de una segunda vela alcista que envuelve por
+completo el cuerpo de la primera vela. Mientras
+más velas sean envueltas por la vela alcista más
+efectivo será el patrón.
+
+Patrón de reversión
+Efectividad alta
+
+Envolvente alcista
+
+Libélula o Bullish DOJI
+El patrón Libélula o Bullish DOJI está formado por
+una vela con gran mecha inferior y un pequeño
+cuerpo en su parte superior. Nos indica una
+probable continuidad o reversión de tendencia,
+dependiendo de si la encontramos en un impulso
+alcista o bajista. Si este patrón aparece en un
+impulso bajista nos muestra una reversión, en
+cambio en uno alcista nos marca una continuidad.
+
+Patrón de continuidad o reversión.
+Efectividad media-alta.
+
+Libélula o Bullish DOJI
+
+Martillo
+Este patrón nos indica un potencial cambio de
+tendencia o al igual que muchos patrones una
+continuación dependiendo del contexto en donde
+lo encontremos. El martillo posee una mecha
+inferior dos veces más grande que su cuerpo
+dándole el aspecto de martillo que lo caracteriza.
+
+Patrón de continuidad o reversión.
+Efectividad alta.
+
+Martillo
+
+Martillo invertido
+El martillo invertido como su nombre lo indica
+tiene el mismo aspecto que el patrón martillo con
+la única diferencia de que este posee su cuerpo
+en la parte inferior. Nos indica una posible
+reversión en la dirección del precio.
+
+Patrón de reversión
+Efectividad baja- media
+
+Martillo invertido
+
+Estrella del amanecer
+La estrella del amanecer es el opuesto al patrón
+bajista estrella del atardecer, al igual que este
+último, la estrella del amanecer suele aparecer al
+final de una tendencia indicándonos una posible
+reversión. Este patrón está formado por tres
+velas, en primer lugar una bajista de gran cuerpo,
+seguida de una vela de indecisión y una alcista de
+gran cuerpo, La cual debe envolver al menos el
+50% de la primer vela.
+
+Patrón de reversión
+Efectividad alta
+
+Estrella del amanecer
+
+Perforación
+El patrón perforación está formado por una vela
+bajista de gran tamaño, seguida de un pequeño
+gap bajista y una vela alcista que cierra como
+mínimo sobre el 50% del cuerpo de la primera
+vela. Este patrón nos indica que existe la
+posibilidad de una reversión en el precio.
+
+Patrón de reversión
+Efectividad alta
+
+Perforación
+
+Harami alcista
+Al igual que la harami bajista este patrón nos
+indica un potencial cambio de tendencia con la
+diferencia de que en este se pasaría de una
+tendencia bajista a una alcista. Una harami alcista
+tiene una vela bajista de gran tamaño, seguida de
+una pequeña vela alcista que abre por encima del
+cierre anterior
+
+Patrón de reversión
+Efectividad baja
+
+Harami alcista
+
+Tres soldados blancos
+Este patrón es un conjunto de tres velas alcistas
+de gran tamaño que nos indican la posibilidad de
+una reversión en la tendencia. Al igual que los tres
+cuervos negros, este es un patrón muy común de
+encontrar y muy fiable en su operativa.
+
+Patrón de reversión
+Efectividad alta
+
+Tres soldados blancos
+
+Patrones neutrales
+DOJI
+La DOJI nos indica una indecisión en el mercado.
+Estas velas tienen como característica principal
+poseer una mecha superior y una inferior más
+grandes que su cuerpo. Algunas de estas DOJIS
+tienen un precio de apertura que coincide con su
+precio de cierre, logrando que no exista un cuerpo
+real en la vela. No es recomendable operar este
+tipo de patrones sin tener experiencia previa en
+su operación.
+
+?
+Cada una de las tres
+velas marcadas es una
+DOJI
+
+Patrón de indecisión
+Efectividad alta
+
+DOJI
+
+DOJI de piernas largas
+Al igual que la DOJI, la DOJI de piernas largas
+suele tener un cuerpo inexistente o muy pequeño,
+la diferencia entre estos dos patrones esta en el
+tamaño de sus mechas. La DOJI de piernas altas
+posee mechas de gran tamaño indicándonos una
+gran volatilidad además de indecisión.
+
+Cada una de las tres
+velas marcadas es una
+DOJI de piernas largas
+
+?
+
+Patrón de indecisión
+Efectividad alta
+
+DOJI de piernas largas
+
+Resumen
+Envolvente bajista
+
+Lapida o Bearish DOJI
+
+Hombre colgado
+
+Patrón de reversion.
+Efectividad alta.
+
+Patrón de reversión.
+Efectividad media-alta.
+
+Patrón de reversion.
+Efectividad alta.
+
+Estrella fugaz
+
+Estrella del atardecer
+
+Cubierta de nube negra
+
+Patrón de reversión.
+Efectividad media-baja.
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de reversión.
+Efectividad alta.
+
+Harami bajista
+
+Tres cuervos negros
+
+Envolvente alcista
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de reversión.
+Efectividad alta.
+
+Resumen
+
+Resumen
+Libélula o Bullish DOJI
+
+Martillo
+
+Martillo invertido
+
+Patrón de reversión.
+Efectividad media-alta.
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de reversion.
+Efectividad media.baja.
+
+Estrella del amanecer
+
+Perforación
+
+Harami alcista
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de reversión.
+Efectividad baja.
+
+Tres soldados blancos
+
+DOJI
+
+DOJI de piernas largas
+
+Patrón de reversión.
+Efectividad alta.
+
+Patrón de indecisión.
+Efectividad alta.
+
+Patrón de indecisión.
+Efectividad alta.
+
+Resumen
+
+¡Esperamos que este contenido te ayude a
+mejorar tu Trading!
+Para seguir aprendiendo, síguenos con un
+click en:
+Aprende a analizar, operar, utilizar indicadores
+y mucho más con nuestros videos
+
+Recibe señales y análisis gratis.
+
+Analiza, aprende y diviértete junto a nosotros
+con operativas en VIVO.
+
+Aprende de manera didáctica y sencilla con
+tips, consejos y reflexiones de trading.
+
+Contacto
+
+

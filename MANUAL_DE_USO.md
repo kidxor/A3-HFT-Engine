@@ -1,25 +1,27 @@
-# Manual de Uso Oficial — A3 AlphaEdge HFT Engine v4.2
+# Manual de Uso Oficial — A3 AlphaEdge PRO HFT Engine & Terminal v6.0 (Proyecto Agustín)
 
-Bienvenido al manual oficial del **Motor de Trading Cuantitativo, Servidor Proxy de Mercado Local y Gestión de Riesgo Enterprise (A3 AlphaEdge Engine v4.2)**.
+Bienvenido al manual oficial del **Motor de Trading Cuantitativo, Servidor Proxy de Mercado Local, Optimización Autónomo por IA Local y Estación de Trabajo Institucional (A3 AlphaEdge PRO Engine v6.0 — Proyecto Agustín)**.
 
-Este sistema nativo para **Linux (Ubuntu)** ejecuta algoritmos de trading cuantitativo en tiempo real, soporta ejecución multiactivo simultánea (SOL, BTC, ETH, ADA, XRP, AVAX, DOT, LINK), simulación de datos sub-segundo con alimentación en vivo desde KuCoin L2 mediante un **Market Data Proxy (MDP)** desacoplado de baja latencia y control estricto de riesgo con Circuit Breaker.
+Este sistema nativo para **Linux (Ubuntu)** ejecuta algoritmos cuantitativos de alta frecuencia en tiempo real, alimentado con datos L2 en vivo desde Bybit/KuCoin mediante un **Market Data Proxy (MDP)** desacoplado de baja latencia (<0.5ms), gestión de riesgo estricta Zero-Trust con Circuit Breaker, auto-evolución continua mediante LLMs locales ($0 costo de API) y una interfaz gráfica de grado terminal institucional (100% viewport width).
 
 ---
 
-## 1. Características Principales del Motor AlphaEdge v4.1
+## 1. Características Principales de AlphaEdge PRO v6.0
 
-| Característica | Bot Tradicional | A3 AlphaEdge HFT Engine v4.2 |
+| Característica | Bot Tradicional | A3 AlphaEdge PRO Engine v6.0 |
 | :--- | :--- | :--- |
-| **Frecuencia de Reacción** | Minutos / Horas | **Velas de 5 Minutos construidas con Ticks Sub-segundo** |
-| **Alimentación de Mercado** | Consultas directas N x Exchange | **Market Data Proxy (MDP) Local**: 1 consulta por símbolo cada 300ms compartida por todos los bots en RAM |
-| **Estrategia Principal** | Indicadores básicos / Simples | **AlphaEdge Trend-Pullback** (Confirmación cuádruple: EMA Stack + ADX + RSI + ATR Volatility Gate) |
-| **Estrategia Secundaria** | N/A | **Orderbook L2 Scalper** (Microestructura con Volume Imbalance Ratio y OFI Delta) |
-| **Warmup de Arranque** | Espera de 200+ min en frío | **Instantáneo** (Generación sintética de 215 velas de calentamiento para cálculo inmediato de EMA200) |
-| **Gestión de Riesgo** | Estática / Manual | **Risk Guard Circuit Breaker** (Límite por Drawdown diario, Peak Equity Drawdown y Cooldown por pérdidas consecutivas) |
-| **Estructura de Comisiones**| Sin comisiones simuladas | **Realista Exchange (KuCoin L2)**: Maker/Taker Fee (0.10% c/u = 0.20% round-trip) + Slippage dinámico |
-| **Persistencia & Índices** | Memoria volátil / Logs | **Base de Datos SQLite en modo WAL + 4 Índices** (`id DESC`, `symbol+strategy`, `pnl`, `profile_id`) con caché de 64MB |
-| **Streaming & UI** | Consola plana / Refresh fijo | **Dashboard HUD Web en Puerto 8005** con SSE (Server-Sent Events) a 200ms y gráfico interactivo |
-| **Modos de Operación** | Estático | **Presets preconfigurados** ($1k, $2.5k, Multi-Asset) + Wizard para crear bots personalizados |
+| **Frecuencia de Reacción** | Minutos / Horas | **Velas de 5m construidas en sub-segundos con Ticks L2 en Vivo** |
+| **Interfaz Gráfica (UX/UI)** | Dashboard estático de 2005 con scroll de 3m | **Estación de Trabajo Institucional (100% Viewport, Estilo TradingView / Hyperliquid)** |
+| **Gráfico Interactivo** | Imagen o canvas simple sin guía | **Canvas de Velas TradingView con Mira de Cruz (Crosshair), EMA 20 y EMA 50 en Vivo** |
+| **Gestión de Posición** | Todo o Nada (Take Profit único) | **Scale-Out Parcial al 50% en 1.5x ATR + Candado Breakeven (+0.1%)** |
+| **Protección contra Noticias**| N/A (Expuesto a deslices) | **News Spike Guard (Bloquea entradas si ATR >= 3.0x promedio)** |
+| **Capital Inicial y Exposición**| Fijo / Arbitrario | **$200.00 USD Capital Base** con escala adaptativa de convicción **hasta 50% de equity** |
+| **Atajos de Teclado (Hotkeys)**| Inexistente | **Teclas `1`, `2`, `3` para Símbolos | Tecla `Espacio` para Pausar/Reanudar Motor** |
+| **Auto-Optimización por IA** | Parámetros estáticos | **Agente Autónomo Local (Ollama `llama3.2:1b`) + Sandbox RAM ($0 costo API)** |
+| **Riesgo / Recompensa** | 1:1 o negativo | **1 : 1.5 R:R Neto** (Scale-Out 1.5x ATR, Full TP 4.0x ATR, SL 2.0x ATR) |
+| **Gestión de Riesgo** | Estática / Manual | **Risk Guard Circuit Breaker** (Drawdown máximo 10.0%, Pausa por Pérdidas Consecutivas) |
+| **Persistencia & Índices** | Memoria volátil | **Base de Datos SQLite WAL + 4 Índices** + Botón 1-Clic `🧹 Reiniciar Stats` |
+| **Estructura del Terminal** | Tablas apiladas en scroll | **Dock Inferior Modular con Pestañas de 1-Clic** (`Posiciones`, `Trades`, `Consola HFT`, `Bots`) |
 
 ---
 
@@ -30,198 +32,125 @@ Presiona `Ctrl + Alt + T` en Ubuntu para abrir la consola.
 
 ### Paso 2: Entrar al Directorio del Proyecto
 ```bash
-cd /home/andres/A3-HFT-Engine
+cd /home/andres/A3-Motor-Trade
 ```
 
-### Paso 3: Iniciar el Servidor Principal (con Market Data Proxy activo)
+### Paso 3: Iniciar el Servidor Principal
 ```bash
 python3 server.py
 ```
 
-### Paso 4: Abrir la Interfaz de Control (Dashboard Web)
-Abre Chrome, Firefox o Brave e ingresa a:
+### Paso 4: Abrir la Estación de Trabajo (Dashboard Web)
+Abre tu navegador e ingresa a:
 👉 `http://localhost:8005/`
 
-> **Nota:** El motor arranca por defecto en **Modo LIVE** con datos reales de mercado procesados a través del proxy local. Puedes pausar/iniciar en cualquier momento mediante los botones del dashboard.
+*(Si habías abierto la versión anterior, presiona `Ctrl + F5` en el navegador para recargar la caché).*
 
 ---
 
-## 3. Arquitectura de Datos: Market Data Proxy (MDP v1.0)
-
-Para evitar saturar la API pública de KuCoin y prevenir bloqueos por *rate limits* al ejecutar múltiples bots o monedas en paralelo, el motor acopla su propia **API Proxy de Datos de Mercado Local**.
+## 3. Guía de Uso del Terminal Institucional UX/UI v6.0
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                       A3-HFT-Engine Process                             │
-│                                                                         │
-│  KuCoin REST API       ┌─────────────────────┐      ┌────────────────┐ │
-│  (1 req/símbolo/300ms) │  Market Data Proxy  │──┐   │  Bot SOL-USDT  │ │
-│ ─────────────────────▶ │  (background thread)│  ├──▶│  Bot BTC-USDT  │ │
-│                        └──────────┬──────────┘  └──▶│  Bot ETH-USDT  │ │
-│                                   │                 └────────────────┘ │
-│                                   │ expone nuestra                     │
-│                                   ▼ propia API                         │
-│                        GET /proxy/orderbook?symbol=X                    │
-│                        GET /proxy/ticker?symbol=X                       │
-│                        GET /proxy/all_tickers                           │
-│                        GET /proxy/status                                │
-└─────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ TOPBAR: [A3 PRO] | Tickers: SOL $103.84 · BTC $80,933 · ETH $2,506 | [Space] 🟢 LIVE    │
+│         Capital: $ [200] [💾] [🧹 Reset] | [👤 Perfiles] [⚙️ Ajustes] [🌐 API] [🔇]   │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│ KPI RIBBON: Equity: $200.00 | PnL: +$0.00 | WR: 0% | DD: 0.00% / 10% | Risk: OPERATIVO │
+├────────────────────────────────────────────────────────┬───────────────────────────────┤
+│                                                        │ AI EVOLUTION CORE             │
+│ CHART WORKSPACE                                        │ - Local LLM Live Audit        │
+│ - Tabs: [SOL 1] [BTC 2] [ETH 3]                        │ - Regime, Alpha, Hypotheses   │
+│ - Live Price, EMA 20, EMA 50 Overlays                  │ - [⚡ Forzar Optimización]     │
+│ - Crosshairs & Candlesticks                            ├───────────────────────────────┤
+│                                                        │ SIGNAL & EXECUTION ENGINE     │
+│                                                        │ - Signal: [NEUTRAL] 300ms     │
+│                                                        │ - Strategy, ADX, EMA 200      │
+│                                                        │ - Scale-Out 50% & SL BE Lock  │
+├────────────────────────────────────────────────────────┴───────────────────────────────┤
+│ BOTTOM DOCK (TABBED):                                                                  │
+│ [📌 Posiciones Activas (0)]  [📜 Historial de Trades (0)]  [⚡ Terminal HFT (0)] [🤖 Bots]│
+└────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Criptomonedas & Pares Soportados por el Proxy
-El proxy mantiene cotizaciones y libros de órdenes actualizados en memoria para los siguientes pares:
-- `SOL-USDT` (Solana)
-- `BTC-USDT` (Bitcoin)
-- `ETH-USDT` (Ethereum)
-- `ADA-USDT` (Cardano)
-- `XRP-USDT` (Ripple)
-- `AVAX-USDT` (Avalanche)
-- `DOT-USDT` (Polkadot)
-- `LINK-USDT` (Chainlink)
+### 3.1 Atajos de Teclado Rápido (Institutional Hotkeys)
+- **Tecla `1`**: Selecciona y muestra instantáneamente el 1er símbolo (**SOL-USDT**).
+- **Tecla `2`**: Selecciona y muestra el 2do símbolo (**BTC-USDT**).
+- **Tecla `3`**: Selecciona y muestra el 3er símbolo (**ETH-USDT**).
+- **Tecla `Espacio` (`Space`)**: Alterna inmediatamente entre **Pausar** y **Reanudar** la operación del bot en vivo.
+- **Buscador de Herramientas (`☰`)**: Abre el cajón lateral desplegable (*slide-over drawer*) para acceder al asistente Wizard, perfiles, reseteo de riesgo y mantenimiento sin ocultar el gráfico.
+
+### 3.2 Macro KPI Ribbon (Cinta de Métricas de Alta Densidad)
+En la parte superior se muestra una cinta continua libre de jitter tipográfico (`JetBrains Mono` con `tabular-nums`):
+- **Balance Total:** `$200.00`
+- **Capital Base Configurado:** `$200.00`
+- **PnL Neto:** `+$0.00`
+- **Win Rate:** `0.0%`
+- **Drawdown Actual:** `0.00%` (Límite máximo protegido: `10.0%`)
+- **Profit Factor & Sharpe Ratio:** `0.00 / 0.00`
+- **Alpha Generado por IA:** `+$0.00 USD`
+- **Risk Guard:** `OPERATIVO` (con micro medidor visual)
+
+### 3.3 Dock Inferior Modular de Pestañas
+- **`📌 Posiciones Activas`**: Tabla completa con barra de progreso en vivo hacia el Take Profit, marcador del 50% scale-out y PnL flotante.
+- **`📜 Historial de Trades`**: Registro histórico de operaciones concluidas con precios de entrada, salida y PnL.
+- **`⚡ Consola HFT & Eventos`**: Terminal completa de logs con filtros por categoría (`Todos`, `Órdenes`, `Señales`, `Riesgo`, `L2`), autoscroll y botón de limpieza.
+- **`🤖 Bots en Paralelo`**: Cuadrícula de bots en ejecución paralela multi-activo.
 
 ---
 
-## 4. Endpoints de Nuestra API Local Proxy (`/proxy/*`)
+## 4. Estrategia Cuantitativa: AlphaEdge PRO (`AlphaEdgeStrategy`)
 
-Nuestra propia API permite consumir cotizaciones y libros de órdenes en tiempo real con latencia de RAM local (0ms de retraso de red externa):
+### 4.1 Mecánica de Scale-Out (Tomas Parciales al 50%)
+1. **Entrada:** Confirmación de Pullback en tendencia (`EMA20 > EMA50 > EMA200`, `ADX >= 20`, `RSI 35-60`).
+2. **Cierre Parcial (50% en 1.5x ATR):**
+   - Al alcanzar el **50% de la distancia al Take Profit completo**, el motor vende la mitad de la posición registrando la primera ganancia.
+   - En ese mismo milisegundo, el Stop Loss se asegura a **Breakeven (+0.1% cubriendo comisiones)**.
+3. **Take Profit Completo (4.0x ATR):** La mitad restante corre con *Trailing Stop* activo hasta alcanzar la meta final.
 
-### 4.1 Orderbook L2 Cacheado
-- **Endpoint**: `GET /proxy/orderbook?symbol=SOL-USDT`
-- **Formato**: Formato nativo KuCoin L2 20 niveles.
-- **Ejemplo de Respuesta**:
-```json
-{
-  "code": "200000",
-  "data": {
-    "bids": [["72.83", "112.8"], ["72.82", "161.2"]],
-    "asks": [["72.84", "85.4"], ["72.85", "140.1"]],
-    "time": 1785580000000
-  }
-}
+### 4.2 Exposición por Convicción (Hasta 50% Equity)
+- El motor evalúa la fuerza de la señal cuantitativa (Stack de EMAs + ADX + alineación de volumen).
+- Para entradas de máxima convicción, permite dimensionar la posición utilizando **hasta el 50% del capital inicial ($100 USD en $200 USD)**, maximizando la ganancia manteniendo la protección de Stop Loss acotada a 2.0x ATR.
+
+### 4.3 News Spike Guard (Protección contra Volatilidad Anómala)
+- El motor calcula el promedio móvil de volatilidad (ATR de 50 velas).
+- Si una vela de noticia genera un pico de volatilidad anómalo (`ATR actual >= 3.0x ATR promedio`), el motor suspende temporalmente nuevas entradas para evitar deslices de precio (*slippage*).
+
+---
+
+## 5. Guardia de Riesgo Enterprise (`RiskGuard`)
+
+1. **Max Daily Drawdown (10%)**: Detiene el motor si las pérdidas del día alcanzan el 10% del capital inicial diario ($20 USD en cuenta de $200 USD).
+2. **Exposición Máxima de Convicción (50%)**: Acotada dinámicamente según la convicción de la estrategia.
+3. **Pausas por Pérdidas Consecutivas**: Pausa de enfriamiento de 300 segundos tras pérdidas consecutivas.
+4. **Reset Diario Automático**: Restablecimiento a las 00:00 UTC/local para operaciones continuas 24/7.
+5. **Botón 1-Clic `🧹 Reiniciar Stats`**: Limpia la base de datos `trades.db` y resetea contadores a cero.
+
+---
+
+## 6. Agente Autónomo Auto-Evolutivo (`AIOptimizerEngine`)
+
+AlphaEdge PRO v6.0 incorpora un optimizador cuantitativo en segundo plano con soporte para LLMs locales (**Ollama `llama3.2:1b` / vLLM**) y optimización Bayesiana en caliente ($0 USD de costo de API).
+
+### 6.1 Mecánica de Auto-Mejora Continua
+1. **Evaluación Periódica:** Cada ciclo (1 hora o manual), el motor evalúa las últimas 200 velas de 5m en un **Sandbox en memoria (RAM)**.
+2. **Generación de Hipótesis:** Combina el razonamiento de un LLM local con perturbaciones cuantitativas adaptativas según el régimen detectado (*Tendencia*, *Rango Lateral*, *Alta Volatilidad*).
+3. **Filtros de Seguridad Inviolables (`ParameterSafeguards`):**
+   - Take Profit mínimo $\ge 2.5\times$ ATR (asegura ganancia bruta $\gg$ comisiones).
+   - Ratio Riesgo:Recompensa estrictamente favorable ($TP > SL$).
+4. **Despliegue en Caliente (*Hot-Reload*):** Si el candidato supera el Sharpe Ratio actual en $\ge 10\%$, actualiza [config/strategy_presets.json](file:///home/andres/A3-Motor-Trade/config/strategy_presets.json) y los simuladores en memoria sin reiniciar el servidor.
+
+---
+
+## 7. Ejecución de Pruebas Automatizadas
+
+La suite completa de pruebas garantiza la integridad del sistema:
+
+```bash
+python3 -m pytest tests/ -v
 ```
 
-### 4.2 Ticker de un Símbolo Específico
-- **Endpoint**: `GET /proxy/ticker?symbol=BTC-USDT`
-- **Ejemplo de Respuesta**:
-```json
-{
-  "symbol": "BTC-USDT",
-  "best_bid": 63041.9,
-  "best_ask": 63042.0,
-  "mid_price": 63041.95,
-  "spread": 0.1,
-  "timestamp_ms": 1785580000000,
-  "is_fresh": true
-}
-```
-
-### 4.3 Tickers de Todas las Monedas
-- **Endpoint**: `GET /proxy/all_tickers`
-- **Descripción**: Devuelve los precios de mid, bid, ask y spread de todas las monedas monitoreadas en una sola llamada.
-
-### 4.4 Estado y Salud del Proxy
-- **Endpoint**: `GET /proxy/status`
-- **Descripción**: Muestra si el proxy está activo, intervalo de refresco, número de símbolos y salud de cada mercado.
+**Resultado:** `32 passed` (100% verde).
 
 ---
 
-## 5. Estrategias Cuantitativas Integradas
-
-### 5.1 AlphaEdge — Trend-Pullback Strategy (`AlphaEdgeStrategy`)
-- **Filosofía**: Captura retrocesos dentro de tendencias fuertes confirmadas. Entrar en el corredor de pullback mejora el precio de entrada, lo que permite Stop Loss más ajustados y un ratio Riesgo:Recompensa muy superior.
-- **Confirmaciones**:
-  1. **Alineación de Tendencia (EMA Stack)**:
-     - LONG: `EMA(20) > EMA(50)` y `Close > EMA(200)`.
-     - SHORT: `EMA(20) < EMA(50)` y `Close < EMA(200)`.
-  2. **Corredor de Pullback Acotado + Filtro de Soporte (EMA 50)**:
-     - LONG: El precio debe ubicarse en la banda del corredor alrededor de `EMA(20)` y mantenerse sobre el soporte de `EMA(50)` (`Close >= EMA(50)`).
-     - SHORT: El precio debe mantenerse debajo de la resistencia de `EMA(50)` (`Close <= EMA(50)`).
-  3. **Filtro de Fuerza de Tendencia (ADX)**: `ADX > 25.0` (Requiere tendencias fuertes consolidadas).
-  4. **Filtro de Momentum Neutral (RSI)**: `35 <= RSI <= 60` para compras.
-  5. **Puerta de Volatilidad (ATR Gate)**: Exige que el `ATR` sea superior a un umbral mínimo (`0.4%` del precio actual) para garantizar que el movimiento del mercado puede cubrir holgadamente las comisiones (`0.20%` round-trip).
-  6. **Cooldown de Velas**: Pausa de 3 velas (15 minutos) tras abrir un trade para evitar reentradas continuas en el mismo nivel.
-- **Riesgo / Recompensa Dinámico por Volatilidad**: **1 : 2.33** (Take Profit = 3.5x ATR 5m | Stop Loss = 1.5x ATR 5m). R:R neto efectivo descontando comisiones: ~1.7:1.
-
-### 5.2 Orderbook L2 Scalper (`OrderbookScalperStrategy`)
-- **Filosofía**: Estrategia de microestructura que evalúa la presión de la punta de compra vs venta en el libro de órdenes Nivel 2.
-- **Métricas**:
-  - **VIR (Volume Imbalance Ratio)**: Relación de volumen acumulado en los 10 niveles top del libro. Compras si `VIR >= 2.0` y ventas si `VIR <= 0.5`.
-  - **OFI Delta (Order Flow Imbalance)**: Flujo neto de liquidez agregada/retirada entre ticks.
-
----
-
-## 6. Guardia de Riesgo Enterprise (`RiskGuard`)
-
-El módulo `RiskGuard` vigila cada trade en tiempo real antes y después de su ejecución:
-
-1. **Max Daily Drawdown (5%)**: Si las pérdidas del día alcanzan el 5% del capital inicial diario, se gatilla el **Circuit Breaker** deteniendo automáticamente el motor.
-2. **Peak Equity Drawdown**: Monitorea el retroceso desde el pico histórico de balance (*High-Water Mark*).
-3. **Cooldown por Pérdidas Consecutivas**: Si el bot sufre **3 pérdidas consecutivas**, entra automáticamente en pausa de seguridad durante 300 segundos (5 minutos).
-4. **Límite de Exposición por Posición**: Ninguna orden puede comprometer más del 25% del capital total disponible.
-5. **Reset Diario a Medianoche**: Restablece los contadores diarios a las 00:00 UTC/local para operaciones continuas 24/7.
-
----
-
-## 7. Persistencia SQLite Optimizada y Registro de Eventos
-
-- **Base de Datos (`data/trades.db`)**:
-  - Modo WAL (`journal_mode=WAL`) con 64MB de caché en RAM y `synchronous=NORMAL`.
-  - **4 Índices SQLite**: `idx_trades_id` (consultas ordenadas), `idx_trades_symbol_strategy`, `idx_trades_pnl` y `idx_trades_profile`.
-  - Guarda: `symbol`, `strategy`, `side`, `entry_price`, `exit_price`, `quantity`, `pnl`, `return_pct`, `exit_reason`, `timestamp_ms`, `profile_id` y `fee`.
-- **Event Logger (`event_logger.py`)**:
-  - Buffer circular optimizado con capacidad para 500 eventos.
-  - Emite mensajes categorizados (`ORDER`, `SIGNAL`, `RISK`, `TICK`, `SYSTEM`).
-
----
-
-## 8. Dashboard Web y Endpoints API Completos
-
-### Panel del Dashboard (`http://localhost:8005`)
-- **KPI Cards**: Capital Total, PnL Acumulado, Win Rate, Drawdown Actual y Profit Factor.
-- **Badge de Estado**: Muestra `🔴 LIVE REAL` cuando el motor está conectado al Proxy de Mercado.
-- **Gráfico en Vivo**: Evolución del precio y PnL mediante Chart.js.
-- **Terminal de Eventos**: Log de eventos en tiempo real con filtros por categoría.
-
-### Resumen de Endpoints HTTP
-
-| Tipo | Endpoint | Descripción |
-| :--- | :--- | :--- |
-| **Stream** | `GET /api/stream` | Stream SSE de datos en vivo (200ms) |
-| **Control** | `GET /api/start` / `stop` / `restart` | Inicia, detiene o reinicia la ejecución |
-| **Reset DB** | `GET /api/cleardb` | Limpieza física de la tabla de trades y contadores a cero |
-| **Risk** | `GET /api/reset_risk` | Reinicio manual del Circuit Breaker |
-| **Modo** | `GET /api/mode?live=true` | Cambia entre modo LIVE (Proxy) y DEMO |
-| **Config** | `POST /api/config` / `/api/configure_bots` | Configuración dinámica de bots y parámetros |
-| **Proxy API** | `GET /proxy/orderbook?symbol=X` | Retorna libro de órdenes L2 cacheado |
-| **Proxy API** | `GET /proxy/ticker?symbol=X` | Retorna cotización y spread de una moneda |
-| **Proxy API** | `GET /proxy/all_tickers` | Retorna precios de **todas las monedas** |
-| **Proxy API** | `GET /proxy/status` | Estado de salud y refresco del proxy local |
-
----
-
-## 9. Variables de Entorno (Configuración Avanzada)
-
-| Variable | Valor por Defecto | Descripción |
-| :--- | :--- | :--- |
-| `PORT` | `8005` | Puerto HTTP del servidor y dashboard |
-| `LIVE_MODE` | `true` | `true` activa el proxy con datos reales; `false` activa modo demo |
-| `AUTO_START_ENGINE` | `true` | Inicia la evaluación de estrategias automáticamente al arrancar |
-
----
-
-## 10. Despliegue 24/7 en la Nube (Render.com + UptimeRobot)
-
-### Repositorio Oficial en GitHub
-- **URL**: `https://github.com/kidxor/A3-HFT-Engine.git`
-- **Rama principal**: `main`
-
-### Configuración en Render.com
-- **Servicio**: Web Service
-- **Entorno**: Python 3
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `python3 server.py`
-- **Archivos de despliegue**: `render.yaml`, `Procfile`, `requirements.txt`.
-
----
-
-*A3 Core Systems — AlphaEdge HFT Engine v4.2*
+*A3 Core Systems — AlphaEdge PRO HFT Engine & Terminal v6.0 (Proyecto Agustín)*
