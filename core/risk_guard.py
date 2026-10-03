@@ -107,7 +107,7 @@ class RiskGuard:
         Determines if the current time falls into the Weekend Standby window:
         From Friday 22:00 UTC through Sunday 22:00 UTC (CME Futures / Wall Street closure).
         """
-        if not self.weekend_filter_enabled:
+        if not self.weekend_filter_enabled or not self.session_filter_enabled:
             return False, ""
 
         if now_utc is None:

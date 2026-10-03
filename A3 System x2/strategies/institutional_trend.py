@@ -25,7 +25,6 @@ from core.market_structure import (
     detect_support_resistance_zones,
     calculate_fibonacci_levels,
 )
-from core.macro_regime import macro_regime_detector
 
 logger = logging.getLogger("InstitutionalTrend")
 
@@ -60,9 +59,27 @@ class InstitutionalTrendStrategy:
         self.risk_per_trade_pct = risk_per_trade_pct
         self.max_exposure_pct = max_exposure_pct
         self.cooldown_candles = cooldown_candles
+        self.bb_period = 20
         self._last_trade_idx = -999
         self.extra_kwargs = kwargs
-        self.macro_detector = macro_regime_detector
+        try:
+            from core.macro_regime import macro_regime_detector
+            self.macro_detector = macro_regime_detector
+        except Exception:
+            self.macro_detector = None
+
+    def compute_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
+        close = df["close"]
+        df["ema_fast"] = compute_ema(close, self.ema_fast)
+        df["ema_slow"] = compute_ema(close, self.ema_slow)
+        df["ema_trend"] = compute_ema(close, self.ema_trend)
+        df["atr"] = compute_atr(df, 14)
+        df["adx"] = compute_adx(df, 14)
+        df["rsi"] = compute_rsi(close, 14)
+        df["bb_upper"], df["bb_middle"], df["bb_lower"], df["pct_b"] = (
+            compute_bollinger_bands(close, 20, 2.0)
+        )
+        return df
 
     def evaluate(
         self,

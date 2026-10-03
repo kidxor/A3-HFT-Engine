@@ -944,6 +944,7 @@ def run_async_portfolio():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     ENGINE_MANAGER = MultiProfileEngineManager()
+    telegram_notifier.set_engine_manager(ENGINE_MANAGER)
     
     # Initialize Market Data Proxy with portfolio symbols
     init_proxy(symbols=ENGINE_MANAGER.single_runner.symbols, interval_ms=300)

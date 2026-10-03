@@ -25,7 +25,6 @@ from core.market_structure import (
     detect_support_resistance_zones,
     calculate_fibonacci_levels,
 )
-from core.macro_regime import macro_regime_detector
 
 logger = logging.getLogger("InstitutionalTrend")
 
@@ -63,7 +62,11 @@ class InstitutionalTrendStrategy:
         self.bb_period = 20
         self._last_trade_idx = -999
         self.extra_kwargs = kwargs
-        self.macro_detector = macro_regime_detector
+        try:
+            from core.macro_regime import macro_regime_detector
+            self.macro_detector = macro_regime_detector
+        except Exception:
+            self.macro_detector = None
 
     def compute_indicators(self, df: pd.DataFrame) -> pd.DataFrame:
         close = df["close"]
