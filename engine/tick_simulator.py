@@ -351,8 +351,9 @@ class SubSecondTickSimulator:
 
         # Build DataFrame efficiently using pre-allocated numpy array
         # (avoids Python-loop copy overhead from list of dicts → pd.concat)
+        # Evaluamos la serie histórica que incluye la vela que acaba de cerrar (candle_history[-1])
         history_list = list(self.candle_history)
-        if self._current_candle is not None:
+        if not history_list and self._current_candle is not None:
             history_list.append(self._current_candle)
 
         n = len(history_list)
